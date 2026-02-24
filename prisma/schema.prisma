@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Course {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  code      String    @unique
+  createdAt DateTime  @default(now())
+  topics    Topic[]
+  surveys   Survey[]
+  students  Student[]
+}
+
+model Student {
+  id        Int        @id @default(autoincrement())
+  number    Int
+  courseId   Int
+  course    Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  responses Response[]
+
+  @@unique([courseId, number])
+}
+
+model Topic {
+  id        Int        @id @default(autoincrement())
+  name      String
+  courseId   Int
+  course    Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@unique([courseId, name])
+}
+
+model Question {
+  id              Int              @id @default(autoincrement())
+  text            String
+  type            String           // MULTIPLE_CHOICE | FREE_TEXT
+  topicId         Int
+  topic           Topic            @relation(fields: [topicId], references: [id])
+  options         QuestionOption[]
+  surveyQuestions SurveyQuestion[]
+  answers         Answer[]
+}
+
+model QuestionOption {
+  id         Int      @id @default(autoincrement())
+  text       String
+  isCorrect  Boolean  @default(false)
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model Survey {
+  id          Int              @id @default(autoincrement())
+  title       String
+  description String           @default("")
+  shareCode   String           @unique
+  mode        String           @default("SURVEY") // SURVEY | QUIZ
+  courseId     Int
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  questions   SurveyQuestion[]
+  responses   Response[]
+}
+
+model SurveyQuestion {
+  id         Int      @id @default(autoincrement())
+  surveyId   Int
+  questionId Int
+  order      Int
+  survey     Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@unique([surveyId, questionId])
+}
+
+model Response {
+  id        Int      @id @default(autoincrement())
+  surveyId  Int
+  studentId Int
+  createdAt DateTime @default(now())
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  student   Student  @relation(fields: [studentId], references: [id])
+  answers   Answer[]
+
+  @@unique([surveyId, studentId])
+  @@index([surveyId])
+  @@index([studentId])
+}
+
+model Answer {
+  id         Int      @id @default(autoincrement())
+  responseId Int
+  questionId Int
+  value      String
+  isCorrect  Boolean?
+  response   Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@index([responseId])
+  @@index([questionId])
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+}

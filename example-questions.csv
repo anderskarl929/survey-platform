@@ -1,0 +1,7 @@
+topic,type,text,option1,option2,option3,option4
+Matematik,MULTIPLE_CHOICE,Vad är 2+2?,3,4,5,6
+Matematik,MULTIPLE_CHOICE,Vad är 10/2?,3,4,5,6
+Svenska,FREE_TEXT,Beskriv din favoritbok med tre ord.,,,,
+Svenska,MULTIPLE_CHOICE,Vilken ordklass tillhör ordet 'snabbt'?,Substantiv,Adjektiv,Adverb,Verb
+Feedback,FREE_TEXT,Hur upplevde du kursen?,,,,
+Feedback,MULTIPLE_CHOICE,Hur nöjd är du med undervisningen?,Mycket nöjd,Nöjd,Missnöjd,Mycket missnöjd
