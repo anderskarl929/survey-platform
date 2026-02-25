@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createQuestionSchema } from "@/lib/validators";
 import { handleApiError } from "@/lib/api-helpers";
+import { requireAdmin } from "@/lib/require-auth";
 
 export async function GET(request: NextRequest) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   const { searchParams } = request.nextUrl;
   const topicId = searchParams.get("topicId");
   const type = searchParams.get("type");
@@ -21,9 +25,13 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const body = await request.json();
-    const { text, type, topicId, options } = createQuestionSchema.parse(body);
+    const { text, type, topicId, options, correctOptionIndex } =
+      createQuestionSchema.parse(body);
 
     const question = await prisma.question.create({
       data: {
@@ -32,7 +40,12 @@ export async function POST(request: Request) {
         topicId,
         options:
           type === "MULTIPLE_CHOICE" && options?.length
-            ? { create: options.map((o) => ({ text: o.trim() })) }
+            ? {
+                create: options.map((o, i) => ({
+                  text: o.trim(),
+                  isCorrect: i === correctOptionIndex,
+                })),
+              }
             : undefined,
       },
       include: { options: true, topic: true },

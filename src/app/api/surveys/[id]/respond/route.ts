@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { respondSchema } from "@/lib/validators";
 import { handleApiError } from "@/lib/api-helpers";
+import { Prisma } from "@prisma/client";
 
 export async function POST(
   request: NextRequest,
@@ -9,10 +10,14 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
+    const surveyId = Number(id);
+    if (isNaN(surveyId)) {
+      return NextResponse.json({ error: "Ogiltigt enkät-ID" }, { status: 400 });
+    }
+
     const body = await request.json();
     const { studentNumber, courseCode, answers } = respondSchema.parse(body);
 
-    const surveyId = Number(id);
     const survey = await prisma.survey.findUnique({
       where: { id: surveyId },
       include: {
@@ -50,14 +55,13 @@ export async function POST(
       );
     }
 
-    // Check if student already answered
-    const existing = await prisma.response.findUnique({
-      where: { surveyId_studentId: { surveyId, studentId: student.id } },
-    });
-    if (existing) {
+    // Validate that answers reference questions that belong to this survey
+    const surveyQuestionIds = new Set(survey.questions.map((sq) => sq.questionId));
+    const invalidAnswers = answers.filter((a) => !surveyQuestionIds.has(a.questionId));
+    if (invalidAnswers.length > 0) {
       return NextResponse.json(
-        { error: "Du har redan svarat på denna enkät." },
-        { status: 409 }
+        { error: "Vissa svar refererar till frågor som inte ingår i enkäten" },
+        { status: 400 }
       );
     }
 
@@ -77,13 +81,29 @@ export async function POST(
       return { questionId: a.questionId, value: a.value, isCorrect };
     });
 
-    const response = await prisma.response.create({
-      data: {
-        surveyId,
-        studentId: student.id,
-        answers: { create: answerData },
-      },
-    });
+    // Use try/catch with unique constraint to prevent race condition
+    // instead of check-then-create which has a TOCTOU gap
+    let response;
+    try {
+      response = await prisma.response.create({
+        data: {
+          surveyId,
+          studentId: student.id,
+          answers: { create: answerData },
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        return NextResponse.json(
+          { error: "Du har redan svarat på denna enkät." },
+          { status: 409 }
+        );
+      }
+      throw error;
+    }
 
     // Calculate score for quiz
     let score = null;

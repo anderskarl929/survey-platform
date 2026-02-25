@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { handleApiError } from "@/lib/api-helpers";
+import { requireAdmin } from "@/lib/require-auth";
 import { z } from "zod";
 
 const createTopicWithCourseSchema = z.object({
@@ -9,6 +10,9 @@ const createTopicWithCourseSchema = z.object({
 });
 
 export async function GET() {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   const topics = await prisma.topic.findMany({
     include: { _count: { select: { questions: true } } },
     orderBy: { name: "asc" },
@@ -17,6 +21,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { name, courseId } = createTopicWithCourseSchema.parse(body);

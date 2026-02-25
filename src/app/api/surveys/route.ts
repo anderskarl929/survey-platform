@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateShareCode } from "@/lib/share-code";
 import { handleApiError } from "@/lib/api-helpers";
+import { requireAdmin } from "@/lib/require-auth";
 import { z } from "zod";
 
 const createSurveyWithCourseSchema = z.object({
@@ -12,6 +13,9 @@ const createSurveyWithCourseSchema = z.object({
 });
 
 export async function GET() {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   const surveys = await prisma.survey.findMany({
     include: {
       _count: { select: { questions: true, responses: true } },
@@ -22,6 +26,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { title, description, courseId, questionIds } =

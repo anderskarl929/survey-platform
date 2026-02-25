@@ -64,7 +64,7 @@ export const createQuestionSchema = z.object({
 });
 
 export const importCsvSchema = z.object({
-  csvContent: z.string().min(1, "CSV-innehåll krävs"),
+  csvContent: z.string().min(1, "CSV-innehåll krävs").max(1_000_000, "CSV-filen är för stor (max 1MB)"),
 });
 
 export const createStudentsSchema = z.union([

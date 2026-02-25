@@ -2,9 +2,10 @@ import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-const STUDENT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "survey-platform-dev-secret-change-in-prod"
-);
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
+const STUDENT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -48,9 +49,11 @@ export default async function middleware(request: NextRequest) {
 
   // Protect admin pages
   if (pathname.startsWith("/admin") && !session?.user) {
+    // Only allow relative paths as callbackUrl to prevent open redirect
+    const safeCallback = pathname.startsWith("/admin") ? pathname : "/admin";
     return NextResponse.redirect(
       new URL(
-        `/admin/login?callbackUrl=${encodeURIComponent(pathname)}`,
+        `/admin/login?callbackUrl=${encodeURIComponent(safeCallback)}`,
         request.url
       )
     );

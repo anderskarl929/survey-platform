@@ -1,13 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/require-auth";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   const { courseId } = await params;
+  const cId = Number(courseId);
+  if (isNaN(cId)) {
+    return NextResponse.json({ error: "Ogiltigt kurs-ID" }, { status: 400 });
+  }
+
   const course = await prisma.course.findUnique({
-    where: { id: Number(courseId) },
+    where: { id: cId },
     include: {
       _count: { select: { topics: true, surveys: true } },
     },

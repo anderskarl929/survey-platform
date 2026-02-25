@@ -12,7 +12,8 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const callbackUrl = searchParams.get("callbackUrl") || "/admin";
+  const rawCallback = searchParams.get("callbackUrl") || "/admin";
+  const callbackUrl = rawCallback.startsWith("/admin") ? rawCallback : "/admin";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

@@ -2,14 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createTopicSchema } from "@/lib/validators";
 import { handleApiError } from "@/lib/api-helpers";
+import { requireAdmin } from "@/lib/require-auth";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   const { courseId } = await params;
+  const cId = Number(courseId);
+  if (isNaN(cId)) {
+    return NextResponse.json({ error: "Ogiltigt kurs-ID" }, { status: 400 });
+  }
+
   const topics = await prisma.topic.findMany({
-    where: { courseId: Number(courseId) },
+    where: { courseId: cId },
     include: { _count: { select: { questions: true } } },
     orderBy: { name: "asc" },
   });
@@ -20,12 +29,20 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const { courseId } = await params;
+    const cId = Number(courseId);
+    if (isNaN(cId)) {
+      return NextResponse.json({ error: "Ogiltigt kurs-ID" }, { status: 400 });
+    }
+
     const body = await request.json();
     const { name } = createTopicSchema.parse(body);
     const topic = await prisma.topic.create({
-      data: { name, courseId: Number(courseId) },
+      data: { name, courseId: cId },
     });
     return NextResponse.json(topic, { status: 201 });
   } catch (error) {

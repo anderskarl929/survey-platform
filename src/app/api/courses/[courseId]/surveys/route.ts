@@ -3,14 +3,23 @@ import { prisma } from "@/lib/prisma";
 import { generateShareCode } from "@/lib/share-code";
 import { createSurveySchema } from "@/lib/validators";
 import { handleApiError } from "@/lib/api-helpers";
+import { requireAdmin } from "@/lib/require-auth";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   const { courseId } = await params;
+  const cId = Number(courseId);
+  if (isNaN(cId)) {
+    return NextResponse.json({ error: "Ogiltigt kurs-ID" }, { status: 400 });
+  }
+
   const surveys = await prisma.survey.findMany({
-    where: { courseId: Number(courseId) },
+    where: { courseId: cId },
     include: {
       _count: { select: { questions: true, responses: true } },
     },
@@ -23,11 +32,36 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const { courseId } = await params;
+    const cId = Number(courseId);
+    if (isNaN(cId)) {
+      return NextResponse.json({ error: "Ogiltigt kurs-ID" }, { status: 400 });
+    }
+
     const body = await request.json();
     const { title, description, mode, questionIds } =
       createSurveySchema.parse(body);
+
+    // Validate that all questionIds belong to this course
+    const validQuestions = await prisma.question.findMany({
+      where: {
+        id: { in: questionIds },
+        topic: { courseId: cId },
+      },
+      select: { id: true },
+    });
+    const validIds = new Set(validQuestions.map((q) => q.id));
+    const invalidIds = questionIds.filter((id) => !validIds.has(id));
+    if (invalidIds.length > 0) {
+      return NextResponse.json(
+        { error: "Vissa frågor tillhör inte denna kurs", invalidIds },
+        { status: 400 }
+      );
+    }
 
     const survey = await prisma.survey.create({
       data: {
@@ -35,7 +69,7 @@ export async function POST(
         description,
         mode,
         shareCode: generateShareCode(),
-        courseId: Number(courseId),
+        courseId: cId,
         questions: {
           create: questionIds.map((qId, index) => ({
             questionId: qId,

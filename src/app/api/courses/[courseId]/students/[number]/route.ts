@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/require-auth";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ courseId: string; number: string }> }
 ) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   const { courseId, number } = await params;
   const cId = Number(courseId);
   const studentNumber = Number(number);
+  if (isNaN(cId) || isNaN(studentNumber)) {
+    return NextResponse.json({ error: "Ogiltigt ID" }, { status: 400 });
+  }
 
   const student = await prisma.student.findUnique({
     where: { courseId_number: { courseId: cId, number: studentNumber } },

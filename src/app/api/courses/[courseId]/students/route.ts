@@ -2,13 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createStudentsSchema } from "@/lib/validators";
 import { handleApiError } from "@/lib/api-helpers";
+import { requireAdmin } from "@/lib/require-auth";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   const { courseId } = await params;
   const cId = Number(courseId);
+  if (isNaN(cId)) {
+    return NextResponse.json({ error: "Ogiltigt kurs-ID" }, { status: 400 });
+  }
 
   const students = await prisma.student.findMany({
     where: { courseId: cId },
@@ -29,9 +36,16 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const { courseId } = await params;
     const cId = Number(courseId);
+    if (isNaN(cId)) {
+      return NextResponse.json({ error: "Ogiltigt kurs-ID" }, { status: 400 });
+    }
+
     const body = await request.json();
     const parsed = createStudentsSchema.parse(body);
 

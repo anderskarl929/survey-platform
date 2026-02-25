@@ -15,24 +15,29 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const res = await fetch("/api/auth/student-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        studentNumber: Number(studentNumber),
-        courseCode: courseCode.trim(),
-      }),
-    });
+    try {
+      const res = await fetch("/api/auth/student-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentNumber: Number(studentNumber),
+          courseCode: courseCode.trim(),
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      setError(data.error || "Inloggning misslyckades");
+      if (!res.ok) {
+        setError(data.error || "Inloggning misslyckades");
+        setLoading(false);
+        return;
+      }
+
+      router.push("/student");
+    } catch {
+      setError("Kunde inte ansluta till servern. Försök igen.");
       setLoading(false);
-      return;
     }
-
-    router.push("/student");
   }
 
   return (

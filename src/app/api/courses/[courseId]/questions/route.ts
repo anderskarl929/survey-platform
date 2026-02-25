@@ -2,17 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createQuestionSchema } from "@/lib/validators";
 import { handleApiError } from "@/lib/api-helpers";
+import { requireAdmin } from "@/lib/require-auth";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   const { courseId } = await params;
+  const cId = Number(courseId);
+  if (isNaN(cId)) {
+    return NextResponse.json({ error: "Ogiltigt kurs-ID" }, { status: 400 });
+  }
+
   const { searchParams } = request.nextUrl;
   const topicId = searchParams.get("topicId");
 
   const where: Record<string, unknown> = {
-    topic: { courseId: Number(courseId) },
+    topic: { courseId: cId },
   };
   if (topicId) where.topicId = Number(topicId);
 
@@ -28,15 +37,23 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const { courseId } = await params;
+    const cId = Number(courseId);
+    if (isNaN(cId)) {
+      return NextResponse.json({ error: "Ogiltigt kurs-ID" }, { status: 400 });
+    }
+
     const body = await request.json();
     const { text, type, topicId, options, correctOptionIndex } =
       createQuestionSchema.parse(body);
 
     // Verify topic belongs to this course
     const topic = await prisma.topic.findFirst({
-      where: { id: topicId, courseId: Number(courseId) },
+      where: { id: topicId, courseId: cId },
     });
     if (!topic) {
       return NextResponse.json(

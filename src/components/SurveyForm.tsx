@@ -69,25 +69,30 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
       .filter((q) => answers[q.id]?.trim())
       .map((q) => ({ questionId: q.id, value: answers[q.id] }));
 
-    const res = await fetch(`/api/surveys/${survey.id}/respond`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        studentNumber: num,
-        courseCode: courseCode.trim(),
-        answers: answerList,
-      }),
-    });
+    try {
+      const res = await fetch(`/api/surveys/${survey.id}/respond`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentNumber: num,
+          courseCode: courseCode.trim(),
+          answers: answerList,
+        }),
+      });
 
-    setSubmitting(false);
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.ok) {
-      setSubmitted(true);
-      if (data.score) setScore(data.score);
-      if (data.quizResults) setQuizResults(data.quizResults);
-    } else {
-      setError(data.error || "Något gick fel");
+      if (res.ok) {
+        setSubmitted(true);
+        if (data.score) setScore(data.score);
+        if (data.quizResults) setQuizResults(data.quizResults);
+      } else {
+        setError(data.error || "Något gick fel");
+      }
+    } catch {
+      setError("Kunde inte skicka svar. Kontrollera din internetanslutning.");
+    } finally {
+      setSubmitting(false);
     }
   }
 

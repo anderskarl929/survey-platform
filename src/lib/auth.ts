@@ -1,26 +1,20 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 
-// Simple password verification using Web Crypto API (no bcrypt dependency needed)
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hash = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+const BCRYPT_ROUNDS = 12;
+
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, BCRYPT_ROUNDS);
 }
 
 async function verifyPassword(
   password: string,
   storedHash: string
 ): Promise<boolean> {
-  const hash = await hashPassword(password);
-  return hash === storedHash;
+  return bcrypt.compare(password, storedHash);
 }
-
-export { hashPassword };
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
