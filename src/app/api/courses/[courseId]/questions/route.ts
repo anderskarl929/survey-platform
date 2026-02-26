@@ -23,7 +23,13 @@ export async function GET(
   const where: Record<string, unknown> = {
     topic: { courseId: cId },
   };
-  if (topicId) where.topicId = Number(topicId);
+  if (topicId) {
+    const tid = Number(topicId);
+    if (isNaN(tid)) {
+      return NextResponse.json({ error: "Ogiltigt ämnes-ID" }, { status: 400 });
+    }
+    where.topicId = tid;
+  }
 
   const questions = await prisma.question.findMany({
     where,

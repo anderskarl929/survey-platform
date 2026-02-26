@@ -67,6 +67,15 @@ export const importCsvSchema = z.object({
   csvContent: z.string().min(1, "CSV-innehåll krävs").max(1_000_000, "CSV-filen är för stor (max 1MB)"),
 });
 
+export const studentLoginSchema = z.object({
+  studentNumber: z.coerce.number().int().positive("Ogiltigt elevnummer"),
+  courseCode: z
+    .string()
+    .min(1, "Kurskod krävs")
+    .max(20)
+    .transform((s) => s.toUpperCase().trim()),
+});
+
 export const createStudentsSchema = z.union([
   z.object({
     numbers: z.array(z.number().int().positive()).min(1),

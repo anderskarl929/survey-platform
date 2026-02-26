@@ -174,15 +174,15 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
           <p className="text-sm text-gray-700 mb-3">
             Format: topic, type, text, option1, option2, option3, option4
           </p>
+          <textarea
+            value={csvContent}
+            onChange={(e) => setCsvContent(e.target.value)}
+            rows={6}
+            placeholder={"topic,type,text,option1,option2,option3,option4,correctAnswer\nMatematik,MULTIPLE_CHOICE,Vad är 2+2?,3,4,5,6,4"}
+            className="w-full border rounded p-2 text-sm font-mono mb-3"
+          />
+          <p className="text-xs text-gray-500 mb-2">Eller ladda upp en CSV-fil:</p>
           <input type="file" accept=".csv" onChange={handleFileUpload} className="mb-3 block text-sm" />
-          {csvContent && (
-            <textarea
-              value={csvContent}
-              onChange={(e) => setCsvContent(e.target.value)}
-              rows={6}
-              className="w-full border rounded p-2 text-sm font-mono mb-3"
-            />
-          )}
           <button
             onClick={handleImport}
             disabled={importing || !csvContent.trim()}

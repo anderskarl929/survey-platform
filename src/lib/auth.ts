@@ -13,6 +13,15 @@ async function verifyPassword(
   password: string,
   storedHash: string
 ): Promise<boolean> {
+  // Support legacy SHA-256 hashes (64 hex chars) for migration
+  if (/^[a-f0-9]{64}$/i.test(storedHash)) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const sha256 = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+    return sha256 === storedHash;
+  }
   return bcrypt.compare(password, storedHash);
 }
 

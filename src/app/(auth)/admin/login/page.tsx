@@ -20,18 +20,23 @@ function LoginForm() {
     setError("");
     setLoading(true);
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      setError("Fel e-post eller lösenord.");
+      if (result?.error) {
+        setError("Fel e-post eller lösenord.");
+      } else {
+        router.push(callbackUrl);
+        router.refresh();
+      }
+    } catch {
+      setError("Något gick fel. Försök igen.");
+    } finally {
       setLoading(false);
-    } else {
-      router.push(callbackUrl);
-      router.refresh();
     }
   }
 

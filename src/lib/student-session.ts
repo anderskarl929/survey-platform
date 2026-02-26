@@ -1,10 +1,13 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-if (!process.env.JWT_SECRET) {
-  throw new Error("JWT_SECRET environment variable is required");
+function getSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET environment variable is required");
+  }
+  return new TextEncoder().encode(secret);
 }
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 const COOKIE_NAME = "student-session";
 
@@ -18,7 +21,7 @@ export async function createStudentSession(session: StudentSession): Promise<str
   const token = await new SignJWT(session as unknown as Record<string, unknown>)
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("30d")
-    .sign(SECRET);
+    .sign(getSecret());
   return token;
 }
 
@@ -28,7 +31,7 @@ export async function getStudentSession(): Promise<StudentSession | null> {
   if (!token) return null;
 
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, getSecret());
     return {
       studentId: payload.studentId as number,
       studentNumber: payload.studentNumber as number,

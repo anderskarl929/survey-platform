@@ -97,10 +97,14 @@ export async function POST(
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        return NextResponse.json(
-          { error: "Du har redan svarat på denna enkät." },
-          { status: 409 }
-        );
+        // Only treat as duplicate response if the unique constraint is on the Response model
+        const target = (error.meta?.target as string[]) ?? [];
+        if (target.includes("surveyId") || target.includes("studentId")) {
+          return NextResponse.json(
+            { error: "Du har redan svarat på denna enkät." },
+            { status: 409 }
+          );
+        }
       }
       throw error;
     }
