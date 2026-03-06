@@ -33,18 +33,25 @@ export async function POST(
     let imported = 0;
 
     await prisma.$transaction(async (tx) => {
-      for (const row of rows) {
+      // Upsert all unique topics first
+      const uniqueTopics = [...new Set(rows.map((r) => r.topic))];
+      const topicMap = new Map<string, number>();
+      for (const name of uniqueTopics) {
         const topic = await tx.topic.upsert({
-          where: { courseId_name: { courseId: cId, name: row.topic } },
+          where: { courseId_name: { courseId: cId, name } },
           update: {},
-          create: { name: row.topic, courseId: cId },
+          create: { name, courseId: cId },
         });
+        topicMap.set(name, topic.id);
+      }
 
+      // Create all questions
+      for (const row of rows) {
         await tx.question.create({
           data: {
             text: row.text,
             type: row.type,
-            topicId: topic.id,
+            topicId: topicMap.get(row.topic)!,
             options:
               row.type === "MULTIPLE_CHOICE" && row.options.length > 0
                 ? {
@@ -60,7 +67,7 @@ export async function POST(
         });
         imported++;
       }
-    });
+    }, { timeout: 30_000 });
 
     return NextResponse.json({ imported });
   } catch (error) {
