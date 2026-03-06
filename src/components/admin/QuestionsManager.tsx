@@ -37,6 +37,9 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
   const [showImport, setShowImport] = useState(false);
   const [csvContent, setCsvContent] = useState("");
   const [importing, setImporting] = useState(false);
+  const [importCourseId, setImportCourseId] = useState("");
+  const [courses, setCourses] = useState<{ id: number; name: string }[]>([]);
+  const needsCourseSelect = apiBase === "/api";
   const [showAdd, setShowAdd] = useState(false);
   const [newQ, setNewQ] = useState({
     text: "",
@@ -51,19 +54,22 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
     try {
       setLoading(true);
       const params = filterTopic ? `?topicId=${filterTopic}` : "";
-      const [qRes, tRes] = await Promise.all([
+      const fetches: Promise<Response>[] = [
         fetch(`${apiBase}/questions${params}`),
         fetch(`${apiBase}/topics`),
-      ]);
+      ];
+      if (needsCourseSelect) fetches.push(fetch("/api/courses"));
+      const [qRes, tRes, cRes] = await Promise.all(fetches);
       if (!qRes.ok || !tRes.ok) throw new Error("Fetch failed");
       setQuestions(await qRes.json());
       setTopics(await tRes.json());
+      if (cRes?.ok) setCourses(await cRes.json());
     } catch {
       showToast("Kunde inte ladda data", "error");
     } finally {
       setLoading(false);
     }
-  }, [apiBase, filterTopic, showToast]);
+  }, [apiBase, filterTopic, showToast, needsCourseSelect]);
 
   useEffect(() => {
     loadData();
@@ -71,12 +77,18 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
 
   async function handleImport() {
     if (!csvContent.trim()) return;
+    if (needsCourseSelect && !importCourseId) {
+      showToast("Välj en kurs att importera till", "error");
+      return;
+    }
     setImporting(true);
     try {
+      const body: Record<string, unknown> = { csvContent };
+      if (needsCourseSelect) body.courseId = Number(importCourseId);
       const res = await fetch(`${apiBase}/questions/import`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ csvContent }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (res.ok) {
@@ -174,6 +186,18 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
           <p className="text-sm text-gray-700 mb-3">
             Format: topic, type, text, option1, option2, option3, option4
           </p>
+          {needsCourseSelect && (
+            <select
+              value={importCourseId}
+              onChange={(e) => setImportCourseId(e.target.value)}
+              className="border rounded p-2 text-sm mb-3 block"
+            >
+              <option value="">Välj kurs...</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          )}
           <textarea
             value={csvContent}
             onChange={(e) => setCsvContent(e.target.value)}
