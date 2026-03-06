@@ -33,7 +33,7 @@ export function handleApiError(error: unknown) {
   console.error("API Error:", message);
   console.error("Stack:", error instanceof Error ? error.stack : "no stack");
   return NextResponse.json(
-    { error: "Internt serverfel", message },
+    { error: `Internt serverfel: ${message}` },
     { status: 500 }
   );
 }
