@@ -8,6 +8,7 @@ export function handleApiError(error: unknown) {
       { status: 400 }
     );
   }
-  console.error(error);
+  console.error("API Error:", error instanceof Error ? error.message : error);
+  console.error("Stack:", error instanceof Error ? error.stack : "no stack");
   return NextResponse.json({ error: "Internt serverfel" }, { status: 500 });
 }
