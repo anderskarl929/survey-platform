@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import BaseSidebar from "@/components/BaseSidebar";
 
 const adminLinks = [
@@ -6,7 +8,11 @@ const adminLinks = [
   { href: "/admin/surveys", label: "Enkäter" },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/admin/login");
+  }
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-50 text-gray-900">
       <a
