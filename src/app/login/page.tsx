@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [studentNumber, setStudentNumber] = useState("");
-  const [courseCode, setCourseCode] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,8 +20,8 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          studentNumber: Number(studentNumber),
-          courseCode: courseCode.trim(),
+          username: username.trim(),
+          password,
         }),
       });
 
@@ -47,28 +47,28 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="login-student-number" className="block text-sm font-medium mb-1">Elevnummer</label>
+            <label htmlFor="login-username" className="block text-sm font-medium mb-1">Användarnamn</label>
             <input
-              id="login-student-number"
-              type="number"
-              min="1"
-              value={studentNumber}
-              onChange={(e) => setStudentNumber(e.target.value)}
-              placeholder="T.ex. 12"
+              id="login-username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="T.ex. sh1a-12"
               className="w-full border rounded p-2 text-sm"
+              autoComplete="username"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="login-course-code" className="block text-sm font-medium mb-1">Kurskod</label>
+            <label htmlFor="login-password" className="block text-sm font-medium mb-1">Lösenord</label>
             <input
-              id="login-course-code"
-              type="text"
-              value={courseCode}
-              onChange={(e) => setCourseCode(e.target.value.toUpperCase())}
-              placeholder="T.ex. MAT7A"
-              className="w-full border rounded p-2 text-sm font-mono uppercase tracking-wider"
+              id="login-password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border rounded p-2 text-sm"
+              autoComplete="current-password"
               required
             />
           </div>
@@ -81,7 +81,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading || !studentNumber || !courseCode}
+            disabled={loading || !username || !password}
             className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 text-sm"
           >
             {loading ? "Loggar in..." : "Logga in"}

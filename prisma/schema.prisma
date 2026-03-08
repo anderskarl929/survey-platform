@@ -18,12 +18,14 @@ model Course {
 }
 
 model Student {
-  id        Int        @id @default(autoincrement())
-  number    Int
-  courseId   Int
-  course    Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  createdAt DateTime   @default(now())
-  responses Response[]
+  id           Int        @id @default(autoincrement())
+  number       Int
+  username     String     @unique
+  passwordHash String
+  courseId      Int
+  course       Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  responses    Response[]
 
   @@unique([courseId, number])
 }

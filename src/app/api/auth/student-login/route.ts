@@ -4,6 +4,7 @@ import { createStudentSession, COOKIE_NAME } from "@/lib/student-session";
 import { studentLoginSchema } from "@/lib/validators";
 import { handleApiError } from "@/lib/api-helpers";
 import { rateLimit } from "@/lib/rate-limit";
+import bcrypt from "bcryptjs";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,30 +25,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { studentNumber, courseCode } = studentLoginSchema.parse(body);
-
-    const course = await prisma.course.findUnique({
-      where: { code: courseCode },
-    });
-
-    if (!course) {
-      // Generic message to prevent enumeration
-      return NextResponse.json(
-        { error: "Ogiltig kurskod eller elevnummer" },
-        { status: 401 }
-      );
-    }
+    const { username, password } = studentLoginSchema.parse(body);
 
     const student = await prisma.student.findUnique({
-      where: {
-        courseId_number: { courseId: course.id, number: studentNumber },
-      },
+      where: { username },
+      include: { course: true },
     });
 
-    if (!student) {
-      // Same generic message — don't reveal whether course or student is wrong
+    if (!student || !(await bcrypt.compare(password, student.passwordHash))) {
       return NextResponse.json(
-        { error: "Ogiltig kurskod eller elevnummer" },
+        { error: "Ogiltigt användarnamn eller lösenord" },
         { status: 401 }
       );
     }
@@ -55,14 +42,14 @@ export async function POST(request: NextRequest) {
     const token = await createStudentSession({
       studentId: student.id,
       studentNumber: student.number,
-      courseId: course.id,
+      courseId: student.courseId,
     });
 
     const response = NextResponse.json({
       success: true,
       studentNumber: student.number,
-      courseId: course.id,
-      courseName: course.name,
+      courseId: student.courseId,
+      courseName: student.course.name,
     });
 
     response.cookies.set(COOKIE_NAME, token, {

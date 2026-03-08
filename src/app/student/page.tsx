@@ -44,6 +44,15 @@ export default async function StudentDashboard() {
         <p className="text-sm text-gray-500">Kurskod: {course.code}</p>
       </div>
 
+      <div className="mb-4">
+        <Link
+          href="/student/results"
+          className="text-sm text-blue-600 hover:underline"
+        >
+          Visa alla mina resultat &rarr;
+        </Link>
+      </div>
+
       {surveys.length === 0 ? (
         <p className="text-gray-500 text-center py-8">
           Inga quiz tillgängliga ännu.

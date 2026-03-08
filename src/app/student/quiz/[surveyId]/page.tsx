@@ -89,8 +89,6 @@ export default async function StudentQuizPage({
           mode: survey.mode,
           questions: remainingQuestions,
         }}
-        studentNumber={session.studentNumber}
-        courseCode={survey.course.code}
       />
     </div>
   );

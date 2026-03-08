@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { respondSchema } from "@/lib/validators";
 import { handleApiError } from "@/lib/api-helpers";
+import { getStudentSession } from "@/lib/student-session";
 import { Prisma } from "@prisma/client";
 
 export async function POST(
@@ -15,8 +16,16 @@ export async function POST(
       return NextResponse.json({ error: "Ogiltigt enkät-ID" }, { status: 400 });
     }
 
+    const session = await getStudentSession();
+    if (!session) {
+      return NextResponse.json(
+        { error: "Du måste vara inloggad för att svara." },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
-    const { studentNumber, courseCode, answers } = respondSchema.parse(body);
+    const { answers } = respondSchema.parse(body);
 
     const survey = await prisma.survey.findUnique({
       where: { id: surveyId },
@@ -34,24 +43,11 @@ export async function POST(
       );
     }
 
-    // Verify course code matches
-    if (survey.course.code !== courseCode) {
-      return NextResponse.json({ error: "Ogiltig kurskod" }, { status: 403 });
-    }
-
-    // Find or verify student exists in this course
-    const student = await prisma.student.findUnique({
-      where: {
-        courseId_number: { courseId: survey.courseId, number: studentNumber },
-      },
-    });
-    if (!student) {
+    // Verify student belongs to this course
+    if (survey.courseId !== session.courseId) {
       return NextResponse.json(
-        {
-          error:
-            "Elevnumret finns inte i denna kurs. Kontakta din lärare.",
-        },
-        { status: 404 }
+        { error: "Du har inte tillgång till denna enkät." },
+        { status: 403 }
       );
     }
 
@@ -82,13 +78,12 @@ export async function POST(
     });
 
     // Use try/catch with unique constraint to prevent race condition
-    // instead of check-then-create which has a TOCTOU gap
     let response;
     try {
       response = await prisma.response.create({
         data: {
           surveyId,
-          studentId: student.id,
+          studentId: session.studentId,
           answers: { create: answerData },
         },
       });
@@ -97,7 +92,6 @@ export async function POST(
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        // Only treat as duplicate response if the unique constraint is on the Response model
         const target = (error.meta?.target as string[]) ?? [];
         if (target.includes("surveyId") || target.includes("studentId")) {
           return NextResponse.json(

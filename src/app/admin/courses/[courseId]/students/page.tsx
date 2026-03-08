@@ -8,7 +8,14 @@ import { useToast } from "@/components/Toast";
 interface Student {
   id: number;
   number: number;
+  username: string;
   responseCount: number;
+}
+
+interface Credential {
+  number: number;
+  username: string;
+  password: string;
 }
 
 export default function StudentsPage() {
@@ -18,6 +25,7 @@ export default function StudentsPage() {
   const [loading, setLoading] = useState(true);
   const [count, setCount] = useState("30");
   const [adding, setAdding] = useState(false);
+  const [credentials, setCredentials] = useState<Credential[] | null>(null);
 
   const loadStudents = useCallback(async () => {
     try {
@@ -48,6 +56,10 @@ export default function StudentsPage() {
         body: JSON.stringify({ count: n }),
       });
       if (res.ok) {
+        const data = await res.json();
+        if (data.credentials?.length > 0) {
+          setCredentials(data.credentials);
+        }
         loadStudents();
         setCount("30");
       } else {
@@ -58,6 +70,30 @@ export default function StudentsPage() {
     } finally {
       setAdding(false);
     }
+  }
+
+  function handleCopyCredentials() {
+    if (!credentials) return;
+    const text = credentials
+      .map((c) => `Elev ${c.number}\tAnvändarnamn: ${c.username}\tLösenord: ${c.password}`)
+      .join("\n");
+    navigator.clipboard.writeText(text);
+    showToast("Kopierat till urklipp!", "success");
+  }
+
+  function handleDownloadCsv() {
+    if (!credentials) return;
+    const csv = [
+      "Elevnummer,Användarnamn,Lösenord",
+      ...credentials.map((c) => `${c.number},${c.username},${c.password}`),
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "elevkonton.csv";
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -86,10 +122,60 @@ export default function StudentsPage() {
             {adding ? "Lägger till..." : "Lägg till elever (1-N)"}
           </button>
           <span className="text-xs text-gray-600">
-            Skapar elevnummer 1 till {count || "N"}. Befintliga nummer hoppas över.
+            Skapar elevnummer 1 till {count || "N"} med autogenererade inloggningsuppgifter.
           </span>
         </form>
       </div>
+
+      {credentials && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg shadow p-4 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-yellow-800">
+              Inloggningsuppgifter (visas bara en gång!)
+            </h2>
+            <div className="flex gap-2">
+              <button
+                onClick={handleCopyCredentials}
+                className="text-xs bg-white border border-yellow-300 px-3 py-1.5 rounded hover:bg-yellow-100"
+              >
+                Kopiera alla
+              </button>
+              <button
+                onClick={handleDownloadCsv}
+                className="text-xs bg-white border border-yellow-300 px-3 py-1.5 rounded hover:bg-yellow-100"
+              >
+                Ladda ner CSV
+              </button>
+              <button
+                onClick={() => setCredentials(null)}
+                className="text-xs text-yellow-700 px-3 py-1.5 rounded hover:bg-yellow-100"
+              >
+                Stäng
+              </button>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-yellow-200 text-left">
+                  <th className="p-2">Elevnummer</th>
+                  <th className="p-2">Användarnamn</th>
+                  <th className="p-2">Lösenord</th>
+                </tr>
+              </thead>
+              <tbody>
+                {credentials.map((c) => (
+                  <tr key={c.number} className="border-b border-yellow-100 last:border-0">
+                    <td className="p-2">#{c.number}</td>
+                    <td className="p-2 font-mono">{c.username}</td>
+                    <td className="p-2 font-mono">{c.password}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-gray-500">Laddar...</div>
@@ -103,6 +189,7 @@ export default function StudentsPage() {
             <thead>
               <tr className="border-b text-left">
                 <th className="p-3">Elevnummer</th>
+                <th className="p-3">Användarnamn</th>
                 <th className="p-3">Antal enkätsvar</th>
                 <th className="p-3"></th>
               </tr>
@@ -111,6 +198,7 @@ export default function StudentsPage() {
               {students.map((s) => (
                 <tr key={s.id} className="border-b last:border-0 hover:bg-gray-50">
                   <td className="p-3 font-medium">#{s.number}</td>
+                  <td className="p-3 font-mono text-gray-600">{s.username}</td>
                   <td className="p-3">{s.responseCount}</td>
                   <td className="p-3">
                     <Link

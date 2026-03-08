@@ -35,14 +35,10 @@ interface Score {
 
 interface Props {
   survey: SurveyData;
-  studentNumber: number;
-  courseCode: string;
 }
 
 export default function StudentQuizForm({
   survey,
-  studentNumber,
-  courseCode,
 }: Props) {
   const router = useRouter();
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -69,7 +65,7 @@ export default function StudentQuizForm({
       const res = await fetch(`/api/surveys/${survey.id}/respond`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentNumber, courseCode, answers: answerList }),
+        body: JSON.stringify({ answers: answerList }),
       });
 
       const data = await res.json();

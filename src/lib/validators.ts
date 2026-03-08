@@ -1,11 +1,6 @@
 import { z } from "zod";
 
 export const respondSchema = z.object({
-  studentNumber: z.number().int().positive("Elevnummer måste vara positivt"),
-  courseCode: z
-    .string()
-    .min(1, "Kurskod krävs")
-    .transform((s) => s.toUpperCase().trim()),
   answers: z
     .array(
       z.object({
@@ -68,12 +63,12 @@ export const importCsvSchema = z.object({
 });
 
 export const studentLoginSchema = z.object({
-  studentNumber: z.coerce.number().int().positive("Ogiltigt elevnummer"),
-  courseCode: z
+  username: z
     .string()
-    .min(1, "Kurskod krävs")
-    .max(20)
-    .transform((s) => s.toUpperCase().trim()),
+    .min(1, "Användarnamn krävs")
+    .max(50)
+    .transform((s) => s.trim()),
+  password: z.string().min(1, "Lösenord krävs"),
 });
 
 export const createStudentsSchema = z.union([
