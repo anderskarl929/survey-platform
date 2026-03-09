@@ -33,13 +33,13 @@ export default async function StudentQuizPage({
     },
   });
 
-  if (!survey || survey.courseId !== courseId || survey.mode !== "QUIZ") {
+  if (!survey || survey.courseId !== courseId) {
     redirect("/student");
   }
 
-  // Get all quiz surveys in the course for mastery calculation
+  // Get all surveys in the course for mastery calculation
   const allSurveys = await prisma.survey.findMany({
-    where: { courseId, mode: "QUIZ" },
+    where: { courseId },
     select: { id: true },
   });
 
