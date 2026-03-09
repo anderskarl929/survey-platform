@@ -13,7 +13,7 @@ export default async function StudentDashboard() {
   const [course, surveys] = await Promise.all([
     prisma.course.findUnique({ where: { id: courseId } }),
     prisma.survey.findMany({
-      where: { courseId, mode: "QUIZ" },
+      where: { courseId },
       include: { questions: true },
       orderBy: { createdAt: "asc" },
     }),
