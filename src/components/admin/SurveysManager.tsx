@@ -316,7 +316,10 @@ export default function SurveysManager({
                 surveys.map((s) => (
                   <tr key={s.id} className="border-b last:border-0 hover:bg-gray-50">
                     <td className="p-3 font-medium">
-                      {s.title}
+                      <div className="flex items-center gap-2">
+                        {s.title}
+                        <span className="text-xs text-gray-400 font-mono">#{s.id}</span>
+                      </div>
                       {allowModeSelection && s.mode === "QUIZ" && (
                         <span className="ml-2 px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">
                           Quiz
