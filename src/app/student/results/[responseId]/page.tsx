@@ -2,7 +2,7 @@ import { getStudentSession } from "@/lib/student-session";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import FeedbackButton from "@/components/FeedbackButton";
+import FeedbackDisplay from "@/components/FeedbackButton";
 
 export default async function ResultDetailPage({
   params,
@@ -127,10 +127,7 @@ export default async function ResultDetailPage({
               </div>
 
               {isFreeText && (
-                <FeedbackButton
-                  answerId={answer.id}
-                  initialFeedback={answer.feedback}
-                />
+                <FeedbackDisplay feedback={answer.feedback} />
               )}
             </div>
           );
