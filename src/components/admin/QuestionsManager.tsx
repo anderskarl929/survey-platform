@@ -50,6 +50,8 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
   });
   const [newTopicName, setNewTopicName] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -184,6 +186,45 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
       showToast("Kunde inte radera fråga — nätverksfel", "error");
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Radera ${selectedIds.size} frågor? Alla tillhörande svar raderas också.`)) return;
+    setBulkDeleting(true);
+    let deleted = 0;
+    let failed = 0;
+    for (const id of selectedIds) {
+      try {
+        const res = await fetch(`${apiBase}/questions/${id}`, { method: "DELETE" });
+        if (res.ok) deleted++;
+        else failed++;
+      } catch {
+        failed++;
+      }
+    }
+    setBulkDeleting(false);
+    setSelectedIds(new Set());
+    if (deleted > 0) showToast(`${deleted} frågor raderade`);
+    if (failed > 0) showToast(`${failed} frågor kunde inte raderas`, "error");
+    loadData();
+  }
+
+  function toggleSelected(id: number) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === questions.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(questions.map((q) => q.id)));
     }
   }
 
@@ -348,9 +389,37 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
         <div className="text-gray-500">Laddar...</div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-x-auto">
+          {selectedIds.size > 0 && (
+            <div className="flex items-center gap-3 p-3 bg-red-50 border-b border-red-200">
+              <span className="text-sm text-red-700 font-medium">
+                {selectedIds.size} frågor markerade
+              </span>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+                className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 disabled:opacity-50"
+              >
+                {bulkDeleting ? "Raderar..." : "Radera markerade"}
+              </button>
+              <button
+                onClick={() => setSelectedIds(new Set())}
+                className="text-sm text-gray-600 hover:text-gray-800"
+              >
+                Avmarkera alla
+              </button>
+            </div>
+          )}
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left">
+                <th className="p-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={questions.length > 0 && selectedIds.size === questions.length}
+                    onChange={toggleSelectAll}
+                    title="Markera alla"
+                  />
+                </th>
                 <th className="p-3">Fråga</th>
                 <th className="p-3">Typ</th>
                 <th className="p-3">Ämne</th>
@@ -361,13 +430,20 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
             <tbody>
               {questions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-3 text-gray-700">
+                  <td colSpan={6} className="p-3 text-gray-700">
                     Inga frågor. Importera via CSV eller lägg till manuellt.
                   </td>
                 </tr>
               ) : (
                 questions.map((q) => (
-                  <tr key={q.id} className="border-b last:border-0 hover:bg-gray-50">
+                  <tr key={q.id} className={`border-b last:border-0 hover:bg-gray-50 ${selectedIds.has(q.id) ? "bg-blue-50" : ""}`}>
+                    <td className="p-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(q.id)}
+                        onChange={() => toggleSelected(q.id)}
+                      />
+                    </td>
                     <td className="p-3">{q.text}</td>
                     <td className="p-3">
                       <span
