@@ -57,6 +57,7 @@ export default function SurveysManager({
   const [lockMode, setLockMode] = useState(false);
   const [filterTopic, setFilterTopic] = useState("");
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const loadSurveys = useCallback(async () => {
     try {
@@ -74,6 +75,24 @@ export default function SurveysManager({
   useEffect(() => {
     loadSurveys();
   }, [loadSurveys]);
+
+  async function deleteSurvey(id: number) {
+    if (!confirm("Är du säker? Alla svar kopplade till denna enkät/quiz raderas också.")) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`${apiBase}/surveys/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        showToast("Enkät raderad");
+        loadSurveys();
+      } else {
+        showToast("Kunde inte radera enkät", "error");
+      }
+    } catch {
+      showToast("Kunde inte radera enkät", "error");
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   async function loadQuestions() {
     try {
@@ -335,12 +354,21 @@ export default function SurveysManager({
                       {new Date(s.createdAt).toLocaleDateString("sv-SE")}
                     </td>
                     <td className="p-3">
-                      <Link
-                        href={`${resultsBasePath}/${s.id}/results`}
-                        className="text-blue-600 hover:underline text-sm"
-                      >
-                        Resultat
-                      </Link>
+                      <div className="flex items-center gap-3">
+                        <Link
+                          href={`${resultsBasePath}/${s.id}/results`}
+                          className="text-blue-600 hover:underline text-sm"
+                        >
+                          Resultat
+                        </Link>
+                        <button
+                          onClick={() => deleteSurvey(s.id)}
+                          disabled={deletingId === s.id}
+                          className="text-red-600 hover:text-red-800 text-sm disabled:opacity-50"
+                        >
+                          {deletingId === s.id ? "Raderar..." : "Radera"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
