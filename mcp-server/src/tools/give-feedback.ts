@@ -1,10 +1,11 @@
 import { prisma } from "../prisma.js";
 
-export async function giveFeedback(
+// Fetches free-text answers without feedback and returns them for Claude to review.
+// Claude Desktop generates the feedback — no API calls needed.
+export async function getFreeTextAnswers(
   surveyId: number,
   studentNumber?: number
 ): Promise<string> {
-  // Find the survey
   const survey = await prisma.survey.findUnique({
     where: { id: surveyId },
     include: { course: true },
@@ -14,11 +15,10 @@ export async function giveFeedback(
     throw new Error(`Enkät med ID ${surveyId} hittades inte`);
   }
 
-  // Build query for answers
   const whereClause: Record<string, unknown> = {
     response: { surveyId },
     question: { type: "FREE_TEXT" },
-    feedback: null, // Only answers without feedback
+    feedback: null,
   };
 
   if (studentNumber) {
@@ -42,76 +42,49 @@ export async function giveFeedback(
       : `Inga fritextsvar utan feedback hittades i enkät "${survey.title}".`;
   }
 
-  const results: string[] = [];
+  const lines = answers.map(
+    (a) =>
+      `[answer_id: ${a.id}] Elev ${a.response.student.number}\n` +
+      `  Ämne: ${a.question.topic.name}\n` +
+      `  Fråga: ${a.question.text}\n` +
+      `  Svar: ${a.value}`
+  );
 
-  for (const answer of answers) {
-    const feedbackText = await generateFeedback(
-      answer.question.topic.name,
-      answer.question.text,
-      answer.value
-    );
-
-    await prisma.answer.update({
-      where: { id: answer.id },
-      data: { feedback: feedbackText },
-    });
-
-    results.push(
-      `Elev ${answer.response.student.number} — "${answer.question.text}":\n` +
-      `  Svar: ${answer.value}\n` +
-      `  Feedback: ${feedbackText}`
-    );
-  }
-
-  return `Feedback genererad för ${results.length} fritextsvar i "${survey.title}":\n\n${results.join("\n\n")}`;
+  return (
+    `Enkät: "${survey.title}" (${survey.course.name})\n` +
+    `${answers.length} fritextsvar utan feedback:\n\n` +
+    lines.join("\n\n") +
+    `\n\n---\nGenerera kort, konstruktiv feedback på svenska för varje svar (max 3-4 meningar per svar). ` +
+    `Var uppmuntrande men ärlig. Bekräfta det som är bra, peka på brister, ge ett konkret förbättringstips.\n` +
+    `Använd sedan save_feedback för att spara feedbacken med rätt answer_id.`
+  );
 }
 
-async function generateFeedback(
-  topicName: string,
-  questionText: string,
-  studentAnswer: string
+// Saves feedback for a single answer (called by Claude after generating feedback)
+export async function saveFeedback(
+  answerId: number,
+  feedback: string
 ): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      "ANTHROPIC_API_KEY saknas i miljövariabler. Lägg till den i mcp-server/.env"
-    );
-  }
-
-  const systemPrompt = `Du är en hjälpsam och uppmuntrande lärare som ger feedback på elevsvar.
-Ge kort, konstruktiv feedback på svenska (max 3-4 meningar).
-- Bekräfta det som är bra i svaret
-- Peka på eventuella brister eller missförstånd
-- Ge ett konkret tips på hur svaret kan förbättras
-- Var uppmuntrande men ärlig
-- Anpassa nivån — det här är en elev, inte en expert`;
-
-  const userPrompt = `Ämne: ${topicName}
-Fråga: ${questionText}
-Elevens svar: ${studentAnswer}
-
-Ge feedback på elevens svar.`;
-
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
+  const answer = await prisma.answer.findUnique({
+    where: { id: answerId },
+    include: {
+      question: true,
+      response: { include: { student: true } },
     },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 300,
-      messages: [{ role: "user", content: userPrompt }],
-      system: systemPrompt,
-    }),
   });
 
-  if (!res.ok) {
-    const errBody = await res.text();
-    throw new Error(`Claude API-fel (${res.status}): ${errBody}`);
+  if (!answer) {
+    throw new Error(`Svar med ID ${answerId} hittades inte`);
   }
 
-  const data = await res.json();
-  return data.content?.[0]?.text || "Kunde inte generera feedback.";
+  if (answer.question.type !== "FREE_TEXT") {
+    throw new Error("Feedback kan bara ges på fritextsvar");
+  }
+
+  await prisma.answer.update({
+    where: { id: answerId },
+    data: { feedback },
+  });
+
+  return `Feedback sparad för elev ${answer.response.student.number}, fråga "${answer.question.text}"`;
 }

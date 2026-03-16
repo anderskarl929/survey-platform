@@ -8,7 +8,7 @@ import { createSurvey } from "./tools/create-survey.js";
 import { getResults } from "./tools/get-results.js";
 import { summarizeResults } from "./tools/summarize-results.js";
 import { getStudentProgress } from "./tools/get-student-progress.js";
-import { giveFeedback } from "./tools/give-feedback.js";
+import { getFreeTextAnswers, saveFeedback } from "./tools/give-feedback.js";
 import { listTopics } from "./resources/topics.js";
 import { getQuestionsByTopic } from "./resources/questions.js";
 import { listCourses } from "./resources/courses.js";
@@ -150,8 +150,8 @@ server.tool(
 );
 
 server.tool(
-  "give_feedback",
-  "Generera AI-feedback på elevers fritextsvar i en enkät. Använder Claude för att ge konstruktiv, uppmuntrande feedback på svenska. Feedbacken sparas i databasen och visas för eleven i appen.",
+  "get_answers_for_feedback",
+  "Hämta elevers fritextsvar som saknar feedback i en enkät. Returnerar svaren så du kan ge feedback, och sedan spara den med save_feedback.",
   {
     survey_id: z.number().int().positive().describe("Enkätens ID"),
     student_number: z
@@ -159,20 +159,43 @@ server.tool(
       .int()
       .positive()
       .optional()
-      .describe(
-        "Valfritt: ge bara feedback för en specifik elev. Utelämna för alla elever."
-      ),
+      .describe("Valfritt: hämta bara svar från en specifik elev"),
   },
   async ({ survey_id, student_number }) => {
     try {
-      const result = await giveFeedback(survey_id, student_number);
+      const result = await getFreeTextAnswers(survey_id, student_number);
       return { content: [{ type: "text" as const, text: result }] };
     } catch (error) {
       return {
         content: [
           {
             type: "text" as const,
-            text: `Fel vid feedback-generering: ${(error as Error).message}`,
+            text: `Fel: ${(error as Error).message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+);
+
+server.tool(
+  "save_feedback",
+  "Spara feedback på ett elevsvar. Använd efter att du genererat feedback med get_answers_for_feedback.",
+  {
+    answer_id: z.number().int().positive().describe("Svarets ID (answer_id från get_answers_for_feedback)"),
+    feedback: z.string().min(1).describe("Feedbacktexten på svenska"),
+  },
+  async ({ answer_id, feedback }) => {
+    try {
+      const result = await saveFeedback(answer_id, feedback);
+      return { content: [{ type: "text" as const, text: result }] };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Fel vid sparning: ${(error as Error).message}`,
           },
         ],
         isError: true,
