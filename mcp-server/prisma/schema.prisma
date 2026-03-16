@@ -81,7 +81,7 @@ model SurveyQuestion {
   questionId Int
   order      Int
   survey     Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  question   Question @relation(fields: [questionId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([surveyId, questionId])
 }
@@ -108,7 +108,7 @@ model Answer {
   feedback   String?
   isCorrect  Boolean?
   response   Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
-  question   Question @relation(fields: [questionId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@index([responseId])
   @@index([questionId])

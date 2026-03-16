@@ -49,6 +49,7 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
     correctOptionIndex: 0,
   });
   const [newTopicName, setNewTopicName] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -157,6 +158,25 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
       }
     } catch {
       showToast("Kunde inte spara fråga", "error");
+    }
+  }
+
+  async function handleDeleteQuestion(id: number) {
+    if (!confirm("Är du säker? Frågan och alla tillhörande svar raderas.")) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`${apiBase}/questions/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        showToast("Fråga raderad");
+        loadData();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || "Kunde inte radera fråga", "error");
+      }
+    } catch {
+      showToast("Kunde inte radera fråga", "error");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -328,12 +348,13 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
                 <th className="p-3">Typ</th>
                 <th className="p-3">Ämne</th>
                 <th className="p-3">Alternativ</th>
+                <th className="p-3"></th>
               </tr>
             </thead>
             <tbody>
               {questions.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-3 text-gray-700">
+                  <td colSpan={5} className="p-3 text-gray-700">
                     Inga frågor. Importera via CSV eller lägg till manuellt.
                   </td>
                 </tr>
@@ -370,6 +391,15 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
                               )
                           : q.options.map((o) => o.text).join(", ")
                         : "—"}
+                    </td>
+                    <td className="p-3">
+                      <button
+                        onClick={() => handleDeleteQuestion(q.id)}
+                        disabled={deletingId === q.id}
+                        className="text-red-600 hover:text-red-800 text-sm disabled:opacity-50"
+                      >
+                        {deletingId === q.id ? "Raderar..." : "Radera"}
+                      </button>
                     </td>
                   </tr>
                 ))
