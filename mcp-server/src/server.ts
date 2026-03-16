@@ -8,6 +8,7 @@ import { createSurvey } from "./tools/create-survey.js";
 import { getResults } from "./tools/get-results.js";
 import { summarizeResults } from "./tools/summarize-results.js";
 import { getStudentProgress } from "./tools/get-student-progress.js";
+import { giveFeedback } from "./tools/give-feedback.js";
 import { listTopics } from "./resources/topics.js";
 import { getQuestionsByTopic } from "./resources/questions.js";
 import { listCourses } from "./resources/courses.js";
@@ -140,6 +141,38 @@ server.tool(
           {
             type: "text" as const,
             text: `Fel vid hämtning av elevprogression: ${(error as Error).message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+);
+
+server.tool(
+  "give_feedback",
+  "Generera AI-feedback på elevers fritextsvar i en enkät. Använder Claude för att ge konstruktiv, uppmuntrande feedback på svenska. Feedbacken sparas i databasen och visas för eleven i appen.",
+  {
+    survey_id: z.number().int().positive().describe("Enkätens ID"),
+    student_number: z
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .describe(
+        "Valfritt: ge bara feedback för en specifik elev. Utelämna för alla elever."
+      ),
+  },
+  async ({ survey_id, student_number }) => {
+    try {
+      const result = await giveFeedback(survey_id, student_number);
+      return { content: [{ type: "text" as const, text: result }] };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Fel vid feedback-generering: ${(error as Error).message}`,
           },
         ],
         isError: true,

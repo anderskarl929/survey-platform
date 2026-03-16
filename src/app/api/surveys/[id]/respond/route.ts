@@ -116,6 +116,15 @@ export async function POST(
     }
 
     // Return quiz results with correct answers for immediate feedback
+    // Fetch saved answers to get their IDs
+    const savedAnswers = await prisma.answer.findMany({
+      where: { responseId: response.id },
+      select: { id: true, questionId: true },
+    });
+    const answerIdMap = new Map(
+      savedAnswers.map((a) => [a.questionId, a.id])
+    );
+
     let quizResults = null;
     if (isQuiz) {
       quizResults = answerData.map((a) => {
@@ -124,8 +133,10 @@ export async function POST(
         );
         const correctOption = sq?.question.options.find((o) => o.isCorrect);
         return {
+          answerId: answerIdMap.get(a.questionId) ?? null,
           questionId: a.questionId,
           questionText: sq?.question.text,
+          questionType: sq?.question.type,
           yourAnswer: a.value,
           isCorrect: a.isCorrect,
           correctAnswer: correctOption?.text || null,
@@ -133,8 +144,25 @@ export async function POST(
       });
     }
 
+    // For surveys (non-quiz), also return answer IDs for feedback
+    let surveyResults = null;
+    if (!isQuiz) {
+      surveyResults = answerData.map((a) => {
+        const sq = survey.questions.find(
+          (sq) => sq.questionId === a.questionId
+        );
+        return {
+          answerId: answerIdMap.get(a.questionId) ?? null,
+          questionId: a.questionId,
+          questionText: sq?.question.text,
+          questionType: sq?.question.type,
+          yourAnswer: a.value,
+        };
+      });
+    }
+
     return NextResponse.json(
-      { success: true, responseId: response.id, score, quizResults },
+      { success: true, responseId: response.id, score, quizResults, surveyResults },
       { status: 201 }
     );
   } catch (error) {

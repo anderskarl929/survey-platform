@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import FlagButton from "@/components/FlagButton";
+import FeedbackButton from "@/components/FeedbackButton";
 
 interface Score {
   correct: number;
@@ -10,8 +11,10 @@ interface Score {
 }
 
 interface QuizResult {
+  answerId?: number | null;
   questionId: number;
   questionText: string;
+  questionType?: string;
   yourAnswer: string;
   isCorrect: boolean | null;
   correctAnswer: string | null;
@@ -90,6 +93,12 @@ export default function QuizResultsDisplay({
                     <p className="text-sm text-green-700">
                       Rätt svar: <span className="font-medium">{r.correctAnswer}</span>
                     </p>
+                  )}
+                  {r.questionType === "FREE_TEXT" && r.answerId && (
+                    <FeedbackButton
+                      answerId={r.answerId}
+                      initialFeedback={null}
+                    />
                   )}
                   {flaggedIds !== undefined && (
                     <div className="mt-2">

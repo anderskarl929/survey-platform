@@ -21,8 +21,10 @@ interface SurveyData {
 }
 
 interface QuizResult {
+  answerId?: number | null;
   questionId: number;
   questionText: string;
+  questionType?: string;
   yourAnswer: string;
   isCorrect: boolean | null;
   correctAnswer: string | null;

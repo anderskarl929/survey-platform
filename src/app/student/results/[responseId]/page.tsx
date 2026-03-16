@@ -2,6 +2,7 @@ import { getStudentSession } from "@/lib/student-session";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import FeedbackButton from "@/components/FeedbackButton";
 
 export default async function ResultDetailPage({
   params,
@@ -83,6 +84,7 @@ export default async function ResultDetailPage({
           );
           const isCorrect = answer.isCorrect === true;
           const isWrong = answer.isCorrect === false;
+          const isFreeText = answer.question.type === "FREE_TEXT";
 
           return (
             <div
@@ -123,6 +125,13 @@ export default async function ResultDetailPage({
                   </p>
                 )}
               </div>
+
+              {isFreeText && (
+                <FeedbackButton
+                  answerId={answer.id}
+                  initialFeedback={answer.feedback}
+                />
+              )}
             </div>
           );
         })}

@@ -105,6 +105,7 @@ model Answer {
   responseId Int
   questionId Int
   value      String
+  feedback   String?
   isCorrect  Boolean?
   response   Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
   question   Question @relation(fields: [questionId], references: [id])

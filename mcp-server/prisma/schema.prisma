@@ -18,12 +18,15 @@ model Course {
 }
 
 model Student {
-  id        Int        @id @default(autoincrement())
-  number    Int
-  courseId   Int
-  course    Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  createdAt DateTime   @default(now())
-  responses Response[]
+  id           Int        @id @default(autoincrement())
+  number       Int
+  username     String     @unique
+  passwordHash String
+  courseId      Int
+  course       Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  responses         Response[]
+  flaggedQuestions   FlaggedQuestion[]
 
   @@unique([courseId, number])
 }
@@ -41,12 +44,13 @@ model Topic {
 model Question {
   id              Int              @id @default(autoincrement())
   text            String
-  type            String
+  type            String           // MULTIPLE_CHOICE | FREE_TEXT
   topicId         Int
   topic           Topic            @relation(fields: [topicId], references: [id])
   options         QuestionOption[]
   surveyQuestions SurveyQuestion[]
   answers         Answer[]
+  flaggedBy       FlaggedQuestion[]
 }
 
 model QuestionOption {
@@ -63,6 +67,7 @@ model Survey {
   description String           @default("")
   shareCode   String           @unique
   mode        String           @default("SURVEY") // SURVEY | QUIZ
+  lockMode    Boolean          @default(false)
   courseId     Int
   course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
   createdAt   DateTime         @default(now())
@@ -91,6 +96,8 @@ model Response {
   answers   Answer[]
 
   @@unique([surveyId, studentId])
+  @@index([surveyId])
+  @@index([studentId])
 }
 
 model Answer {
@@ -98,7 +105,31 @@ model Answer {
   responseId Int
   questionId Int
   value      String
+  feedback   String?
   isCorrect  Boolean?
   response   Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
   question   Question @relation(fields: [questionId], references: [id])
+
+  @@index([responseId])
+  @@index([questionId])
+}
+
+model FlaggedQuestion {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  questionId Int
+  createdAt  DateTime @default(now())
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, questionId])
+  @@index([studentId])
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
 }
