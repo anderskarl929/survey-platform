@@ -170,11 +170,18 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
         showToast("Fråga raderad");
         loadData();
       } else {
-        const data = await res.json().catch(() => ({}));
-        showToast(data.error || "Kunde inte radera fråga", "error");
+        let msg = "Kunde inte radera fråga";
+        try {
+          const data = await res.json();
+          if (data.error) msg = data.error;
+        } catch {
+          msg = `Serverfel (${res.status})`;
+        }
+        showToast(msg, "error");
       }
-    } catch {
-      showToast("Kunde inte radera fråga", "error");
+    } catch (err) {
+      console.error("Delete question error:", err);
+      showToast("Kunde inte radera fråga — nätverksfel", "error");
     } finally {
       setDeletingId(null);
     }
