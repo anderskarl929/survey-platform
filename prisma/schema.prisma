@@ -25,7 +25,8 @@ model Student {
   courseId      Int
   course       Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
-  responses    Response[]
+  responses         Response[]
+  flaggedQuestions   FlaggedQuestion[]
 
   @@unique([courseId, number])
 }
@@ -49,6 +50,7 @@ model Question {
   options         QuestionOption[]
   surveyQuestions SurveyQuestion[]
   answers         Answer[]
+  flaggedBy       FlaggedQuestion[]
 }
 
 model QuestionOption {
@@ -65,6 +67,7 @@ model Survey {
   description String           @default("")
   shareCode   String           @unique
   mode        String           @default("SURVEY") // SURVEY | QUIZ
+  lockMode    Boolean          @default(false)
   courseId     Int
   course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
   createdAt   DateTime         @default(now())
@@ -108,6 +111,18 @@ model Answer {
 
   @@index([responseId])
   @@index([questionId])
+}
+
+model FlaggedQuestion {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  questionId Int
+  createdAt  DateTime @default(now())
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, questionId])
+  @@index([studentId])
 }
 
 model Admin {

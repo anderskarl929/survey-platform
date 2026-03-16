@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import FlagButton from "@/components/FlagButton";
 
 interface Score {
   correct: number;
@@ -20,6 +21,7 @@ interface QuizResultsDisplayProps {
   score: Score | null;
   quizResults: QuizResult[] | null;
   isQuiz: boolean;
+  flaggedIds?: Set<number>;
   children?: ReactNode;
 }
 
@@ -27,6 +29,7 @@ export default function QuizResultsDisplay({
   score,
   quizResults,
   isQuiz,
+  flaggedIds,
   children,
 }: QuizResultsDisplayProps) {
   return (
@@ -45,6 +48,11 @@ export default function QuizResultsDisplay({
             </div>
             <div className="text-gray-700">{score.percentage}% rätt</div>
           </div>
+        )}
+        {isQuiz && flaggedIds !== undefined && (
+          <p className="text-sm text-gray-500 mt-2">
+            🚩 Markera frågor du vill öva mer på — de sparas på din dashboard.
+          </p>
         )}
         {!isQuiz && <p className="text-gray-700">Dina svar har skickats in.</p>}
       </div>
@@ -82,6 +90,15 @@ export default function QuizResultsDisplay({
                     <p className="text-sm text-green-700">
                       Rätt svar: <span className="font-medium">{r.correctAnswer}</span>
                     </p>
+                  )}
+                  {flaggedIds !== undefined && (
+                    <div className="mt-2">
+                      <FlagButton
+                        questionId={r.questionId}
+                        initialFlagged={flaggedIds.has(r.questionId)}
+                        size="md"
+                      />
+                    </div>
                   )}
                 </div>
                 <span className="text-lg">

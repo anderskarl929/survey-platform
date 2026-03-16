@@ -32,6 +32,7 @@ export const createSurveySchema = z.object({
     .default("")
     .transform((s) => s.trim()),
   mode: z.enum(["SURVEY", "QUIZ"]).optional().default("SURVEY"),
+  lockMode: z.boolean().optional().default(false),
   questionIds: z
     .array(z.number().int().positive())
     .min(1, "Välj minst en fråga"),

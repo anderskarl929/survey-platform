@@ -1,5 +1,7 @@
 "use client";
 
+import FlagButton from "@/components/FlagButton";
+
 interface Question {
   id: number;
   text: string;
@@ -11,16 +13,30 @@ interface QuestionRendererProps {
   questions: Question[];
   answers: Record<number, string>;
   onAnswer: (questionId: number, value: string) => void;
+  flaggedIds?: Set<number>;
 }
 
-export default function QuestionRenderer({ questions, answers, onAnswer }: QuestionRendererProps) {
+export default function QuestionRenderer({
+  questions,
+  answers,
+  onAnswer,
+  flaggedIds,
+}: QuestionRendererProps) {
   return (
     <>
       {questions.map((q, i) => (
         <div key={q.id} className="bg-white rounded-lg shadow p-6 mb-4">
-          <label className="block font-medium mb-3 text-gray-900">
-            {i + 1}. {q.text}
-          </label>
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <label className="block font-medium text-gray-900">
+              {i + 1}. {q.text}
+            </label>
+            {flaggedIds !== undefined && (
+              <FlagButton
+                questionId={q.id}
+                initialFlagged={flaggedIds.has(q.id)}
+              />
+            )}
+          </div>
 
           {q.type === "MULTIPLE_CHOICE" ? (
             <div className="flex flex-col gap-2" role="radiogroup" aria-label={q.text}>

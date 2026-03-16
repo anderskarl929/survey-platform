@@ -89,6 +89,7 @@ export default async function StudentQuizPage({
           mode: survey.mode,
           questions: remainingQuestions,
         }}
+        lockMode={survey.lockMode}
       />
     </div>
   );

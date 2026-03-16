@@ -28,6 +28,7 @@ export default async function PublicSurveyPage({
     title: survey.title,
     description: survey.description,
     mode: survey.mode,
+    lockMode: survey.lockMode,
     questions: survey.questions.map((sq) => ({
       id: sq.question.id,
       text: sq.question.text,

@@ -42,6 +42,7 @@ export default function TopicComposer({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [mode, setMode] = useState("SURVEY");
+  const [lockMode, setLockMode] = useState(false);
   const [topics, setTopics] = useState<TopicWithCount[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [topicCounts, setTopicCounts] = useState<Record<number, number>>({});
@@ -96,6 +97,7 @@ export default function TopicComposer({
         title,
         description,
         questionIds,
+        lockMode,
       };
       if (allowModeSelection) body.mode = mode;
       const res = await fetch(`${apiBase}/surveys`, {
@@ -173,6 +175,16 @@ export default function TopicComposer({
           </label>
         </div>
       )}
+
+      <label className="flex items-center gap-2 mb-3 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={lockMode}
+          onChange={(e) => setLockMode(e.target.checked)}
+        />
+        <span className="text-sm">🔒 Låst läge</span>
+        <span className="text-xs text-gray-500">(elever kan inte byta flik under quiz)</span>
+      </label>
 
       <div className="mb-3">
         <span className="text-sm font-medium mb-2 block">

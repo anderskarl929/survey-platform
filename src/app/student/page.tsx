@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { calculateMastery, ResponseRecord } from "@/lib/mastery";
 import Link from "next/link";
+import FlaggedQuestionsList from "@/components/FlaggedQuestionsList";
 
 export default async function StudentDashboard() {
   const session = await getStudentSession();
@@ -10,12 +11,24 @@ export default async function StudentDashboard() {
 
   const { studentId, courseId } = session;
 
-  const [course, surveys] = await Promise.all([
+  const [course, surveys, flaggedQuestions] = await Promise.all([
     prisma.course.findUnique({ where: { id: courseId } }),
     prisma.survey.findMany({
       where: { courseId },
       include: { questions: true },
       orderBy: { createdAt: "asc" },
+    }),
+    prisma.flaggedQuestion.findMany({
+      where: { studentId },
+      include: {
+        question: {
+          include: {
+            topic: true,
+            options: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
     }),
   ]);
 
@@ -37,6 +50,16 @@ export default async function StudentDashboard() {
     }))
   );
 
+  const flaggedData = flaggedQuestions.map((fq) => ({
+    questionId: fq.questionId,
+    text: fq.question.text,
+    type: fq.question.type,
+    topicName: fq.question.topic.name,
+    options: fq.question.options.map((o) => o.text),
+    correctAnswer:
+      fq.question.options.find((o) => o.isCorrect)?.text ?? null,
+  }));
+
   return (
     <div>
       <div className="mb-6">
@@ -52,6 +75,19 @@ export default async function StudentDashboard() {
           Visa alla mina resultat &rarr;
         </Link>
       </div>
+
+      {/* Flagged questions section */}
+      {flaggedData.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            🚩 Frågor att öva på
+            <span className="text-sm font-normal text-gray-500">
+              ({flaggedData.length})
+            </span>
+          </h3>
+          <FlaggedQuestionsList questions={flaggedData} />
+        </div>
+      )}
 
       {surveys.length === 0 ? (
         <p className="text-gray-500 text-center py-8">

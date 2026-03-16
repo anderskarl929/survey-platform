@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import QuestionRenderer from "@/components/QuestionRenderer";
 import QuizResultsDisplay from "@/components/QuizResultsDisplay";
 import ProgressBar from "@/components/ProgressBar";
+import LockOverlay from "@/components/LockOverlay";
 
 interface SurveyData {
   id: number;
@@ -35,11 +36,10 @@ interface Score {
 
 interface Props {
   survey: SurveyData;
+  lockMode?: boolean;
 }
 
-export default function StudentQuizForm({
-  survey,
-}: Props) {
+export default function StudentQuizForm({ survey, lockMode = false }: Props) {
   const router = useRouter();
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -47,6 +47,19 @@ export default function StudentQuizForm({
   const [error, setError] = useState("");
   const [score, setScore] = useState<Score | null>(null);
   const [quizResults, setQuizResults] = useState<QuizResult[] | null>(null);
+  const [flaggedIds, setFlaggedIds] = useState<Set<number>>(new Set());
+
+  // Fetch flagged questions on mount
+  useEffect(() => {
+    fetch("/api/student/flagged")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.questionIds) {
+          setFlaggedIds(new Set(data.questionIds));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   function setAnswer(questionId: number, value: string) {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -86,7 +99,12 @@ export default function StudentQuizForm({
 
   if (submitted) {
     return (
-      <QuizResultsDisplay score={score} quizResults={quizResults} isQuiz>
+      <QuizResultsDisplay
+        score={score}
+        quizResults={quizResults}
+        isQuiz
+        flaggedIds={flaggedIds}
+      >
         <button
           onClick={() => router.push("/student")}
           className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700"
@@ -104,14 +122,22 @@ export default function StudentQuizForm({
 
   return (
     <form onSubmit={handleSubmit}>
+      <LockOverlay enabled={lockMode && !submitted} />
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{survey.title}</h1>
         {survey.description && (
           <p className="text-gray-700 mt-2">{survey.description}</p>
         )}
-        <span className="inline-block mt-2 px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">
-          Quiz
-        </span>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="inline-block px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">
+            Quiz
+          </span>
+          {lockMode && (
+            <span className="inline-block px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">
+              🔒 Låst läge
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6 mb-6">
@@ -123,7 +149,12 @@ export default function StudentQuizForm({
         )}
       </div>
 
-      <QuestionRenderer questions={survey.questions} answers={answers} onAnswer={setAnswer} />
+      <QuestionRenderer
+        questions={survey.questions}
+        answers={answers}
+        onAnswer={setAnswer}
+        flaggedIds={flaggedIds}
+      />
 
       <button
         type="submit"

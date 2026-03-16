@@ -28,6 +28,7 @@ interface Survey {
   title: string;
   shareCode: string;
   mode?: string;
+  lockMode?: boolean;
   createdAt: string;
   _count: { questions: number; responses: number };
 }
@@ -53,6 +54,7 @@ export default function SurveysManager({
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [mode, setMode] = useState("SURVEY");
+  const [lockMode, setLockMode] = useState(false);
   const [filterTopic, setFilterTopic] = useState("");
   const [topics, setTopics] = useState<Topic[]>([]);
 
@@ -105,6 +107,7 @@ export default function SurveysManager({
         title,
         description,
         questionIds: selectedIds,
+        lockMode,
       };
       if (allowModeSelection) body.mode = mode;
 
@@ -117,6 +120,7 @@ export default function SurveysManager({
         setTitle("");
         setDescription("");
         setMode("SURVEY");
+        setLockMode(false);
         setSelectedIds([]);
         setCreateMode("none");
         loadSurveys();
@@ -205,6 +209,16 @@ export default function SurveysManager({
             </div>
           )}
 
+          <label className="flex items-center gap-2 mb-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={lockMode}
+              onChange={(e) => setLockMode(e.target.checked)}
+            />
+            <span className="text-sm">🔒 Låst läge</span>
+            <span className="text-xs text-gray-500">(elever kan inte byta flik under quiz)</span>
+          </label>
+
           <div className="mb-3">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-sm font-medium">Välj frågor:</span>
@@ -287,6 +301,11 @@ export default function SurveysManager({
                       {allowModeSelection && s.mode === "QUIZ" && (
                         <span className="ml-2 px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">
                           Quiz
+                        </span>
+                      )}
+                      {s.lockMode && (
+                        <span className="ml-2 px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">
+                          🔒
                         </span>
                       )}
                     </td>

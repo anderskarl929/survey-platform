@@ -1,15 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import QuestionRenderer from "@/components/QuestionRenderer";
 import QuizResultsDisplay from "@/components/QuizResultsDisplay";
 import ProgressBar from "@/components/ProgressBar";
+import LockOverlay from "@/components/LockOverlay";
 
 interface SurveyData {
   id: number;
   title: string;
   description: string;
   mode: string;
+  lockMode: boolean;
   questions: {
     id: number;
     text: string;
@@ -41,8 +43,26 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
   const [error, setError] = useState("");
   const [score, setScore] = useState<Score | null>(null);
   const [quizResults, setQuizResults] = useState<QuizResult[] | null>(null);
+  const [flaggedIds, setFlaggedIds] = useState<Set<number> | undefined>(
+    undefined
+  );
 
   const isQuiz = survey.mode === "QUIZ";
+
+  // Try to fetch flagged questions — works if student is logged in, silently skipped otherwise
+  useEffect(() => {
+    fetch("/api/student/flagged")
+      .then((res) => {
+        if (res.ok) return res.json();
+        return null;
+      })
+      .then((data) => {
+        if (data?.questionIds) {
+          setFlaggedIds(new Set(data.questionIds));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   function setAnswer(questionId: number, value: string) {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -97,7 +117,14 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
   }
 
   if (submitted) {
-    return <QuizResultsDisplay score={score} quizResults={quizResults} isQuiz={isQuiz} />;
+    return (
+      <QuizResultsDisplay
+        score={score}
+        quizResults={quizResults}
+        isQuiz={isQuiz}
+        flaggedIds={flaggedIds}
+      />
+    );
   }
 
   const answeredCount = survey.questions.filter((q) => answers[q.id]?.trim()).length;
@@ -105,14 +132,22 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
 
   return (
     <form onSubmit={handleSubmit}>
+      <LockOverlay enabled={survey.lockMode && !submitted} />
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{survey.title}</h1>
         {survey.description && (
           <p className="text-gray-700 mt-2">{survey.description}</p>
         )}
-        {isQuiz && (
-          <span className="inline-block mt-2 px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">Quiz</span>
-        )}
+        <div className="flex items-center gap-2 mt-2">
+          {isQuiz && (
+            <span className="inline-block px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">Quiz</span>
+          )}
+          {survey.lockMode && (
+            <span className="inline-block px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">
+              🔒 Låst läge
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6 mb-6">
@@ -149,7 +184,12 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
         {error && <p className="text-red-600 text-sm mt-2" role="alert">{error}</p>}
       </div>
 
-      <QuestionRenderer questions={survey.questions} answers={answers} onAnswer={setAnswer} />
+      <QuestionRenderer
+        questions={survey.questions}
+        answers={answers}
+        onAnswer={setAnswer}
+        flaggedIds={flaggedIds}
+      />
 
       <button
         type="submit"

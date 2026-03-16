@@ -43,7 +43,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { title, description, mode, questionIds } =
+    const { title, description, mode, lockMode, questionIds } =
       createSurveySchema.parse(body);
 
     // Validate that all questionIds belong to this course
@@ -68,6 +68,7 @@ export async function POST(
         title,
         description,
         mode,
+        lockMode,
         shareCode: generateShareCode(),
         courseId: cId,
         questions: {
