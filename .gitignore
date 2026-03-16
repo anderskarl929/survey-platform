@@ -48,5 +48,6 @@ next-env.d.ts
 
 # Claude Code
 .claude/
+.mcp.json
 mcp-server/dist/
 mcp-server/node_modules/
