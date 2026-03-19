@@ -103,6 +103,11 @@ export async function POST(
       throw error;
     }
 
+    // Delete any draft for this student+survey
+    await prisma.draftResponse.deleteMany({
+      where: { surveyId, studentId: session.studentId },
+    });
+
     // Calculate score for quiz
     let score = null;
     if (isQuiz) {

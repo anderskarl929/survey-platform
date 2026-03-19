@@ -11,7 +11,7 @@ export default async function StudentDashboard() {
 
   const { studentId, courseId } = session;
 
-  const [course, surveys, flaggedQuestions] = await Promise.all([
+  const [course, surveys, flaggedQuestions, drafts] = await Promise.all([
     prisma.course.findUnique({ where: { id: courseId } }),
     prisma.survey.findMany({
       where: { courseId },
@@ -30,7 +30,13 @@ export default async function StudentDashboard() {
       },
       orderBy: { createdAt: "desc" },
     }),
+    prisma.draftResponse.findMany({
+      where: { studentId },
+      select: { surveyId: true, updatedAt: true },
+    }),
   ]);
+
+  const draftBySurvey = new Map(drafts.map((d) => [d.surveyId, d.updatedAt]));
 
   if (!course) redirect("/login");
 
@@ -102,6 +108,7 @@ export default async function StudentDashboard() {
               allRecords
             );
             const hasResponded = responses.some((r) => r.surveyId === survey.id);
+            const hasDraft = draftBySurvey.has(survey.id);
             const allMastered =
               remainingIds.length === 0 && questionIds.length > 0;
             const masteryPercent =
@@ -145,12 +152,19 @@ export default async function StudentDashboard() {
                 </div>
 
                 {!allMastered && (
-                  <Link
-                    href={`/student/quiz/${survey.id}`}
-                    className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-                  >
-                    {hasResponded ? "Öva igen" : "Starta"}
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/student/quiz/${survey.id}`}
+                      className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                    >
+                      {hasDraft ? "Fortsätt" : hasResponded ? "Öva igen" : "Starta"}
+                    </Link>
+                    {hasDraft && (
+                      <span className="text-xs text-amber-600">
+                        Sparat utkast
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
             );

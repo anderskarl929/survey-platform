@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import QuestionRenderer from "@/components/QuestionRenderer";
 import QuizResultsDisplay from "@/components/QuizResultsDisplay";
@@ -50,9 +50,26 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
   const [score, setScore] = useState<Score | null>(null);
   const [quizResults, setQuizResults] = useState<QuizResult[] | null>(null);
   const [flaggedIds, setFlaggedIds] = useState<Set<number>>(new Set());
+  const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Fetch flagged questions on mount
+  // Load draft and flagged questions on mount
   useEffect(() => {
+    fetch(`/api/surveys/${survey.id}/draft`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.draft?.answers) {
+          const loaded: Record<number, string> = {};
+          for (const [key, value] of Object.entries(data.draft.answers)) {
+            loaded[Number(key)] = value as string;
+          }
+          setAnswers(loaded);
+          setDraftLoaded(true);
+        }
+      })
+      .catch(() => {});
+
     fetch("/api/student/flagged")
       .then((res) => res.json())
       .then((data) => {
@@ -61,11 +78,46 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [survey.id]);
+
+  const saveDraft = useCallback(
+    async (currentAnswers: Record<number, string>) => {
+      const hasAnswers = Object.values(currentAnswers).some((v) => v.trim());
+      if (!hasAnswers) return;
+
+      setDraftStatus("saving");
+      try {
+        const res = await fetch(`/api/surveys/${survey.id}/draft`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answers: currentAnswers }),
+        });
+        setDraftStatus(res.ok ? "saved" : "error");
+      } catch {
+        setDraftStatus("error");
+      }
+    },
+    [survey.id]
+  );
 
   function setAnswer(questionId: number, value: string) {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+    setAnswers((prev) => {
+      const next = { ...prev, [questionId]: value };
+
+      // Debounce auto-save: 2 seconds after last change
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => saveDraft(next), 2000);
+
+      return next;
+    });
   }
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -86,6 +138,8 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
       const data = await res.json();
 
       if (res.ok) {
+        // Delete draft on successful submit
+        fetch(`/api/surveys/${survey.id}/draft`, { method: "DELETE" }).catch(() => {});
         setSubmitted(true);
         if (data.score) setScore(data.score);
         if (data.quizResults) setQuizResults(data.quizResults);
@@ -144,11 +198,23 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
 
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <ProgressBar answered={answeredCount} total={totalQuestions} />
-        {error && (
-          <p className="text-red-600 text-sm mt-3" role="alert">
-            {error}
-          </p>
-        )}
+        <div className="flex items-center justify-between mt-3">
+          <div>
+            {error && (
+              <p className="text-red-600 text-sm" role="alert">
+                {error}
+              </p>
+            )}
+          </div>
+          <div className="text-xs text-gray-400">
+            {draftLoaded && draftStatus === "idle" && "Utkast laddat"}
+            {draftStatus === "saving" && "Sparar utkast…"}
+            {draftStatus === "saved" && "Utkast sparat"}
+            {draftStatus === "error" && (
+              <span className="text-red-400">Kunde inte spara utkast</span>
+            )}
+          </div>
+        </div>
       </div>
 
       <QuestionRenderer
