@@ -119,6 +119,15 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
     };
   }, []);
 
+  const [saving, setSaving] = useState(false);
+
+  async function handleSaveDraft() {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    setSaving(true);
+    await saveDraft(answers);
+    setSaving(false);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -224,13 +233,23 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
         flaggedIds={flaggedIds}
       />
 
-      <button
-        type="submit"
-        disabled={submitting || answeredCount < totalQuestions}
-        className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
-      >
-        {submitting ? "Skickar..." : "Skicka svar"}
-      </button>
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={handleSaveDraft}
+          disabled={saving || submitting}
+          className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 disabled:opacity-50 border border-gray-300"
+        >
+          {saving ? "Sparar..." : draftStatus === "saved" && !saving ? "Sparat — du kan fortsätta senare" : "Spara"}
+        </button>
+        <button
+          type="submit"
+          disabled={submitting || answeredCount < totalQuestions}
+          className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+        >
+          {submitting ? "Skickar..." : "Skicka svar"}
+        </button>
+      </div>
     </form>
   );
 }
