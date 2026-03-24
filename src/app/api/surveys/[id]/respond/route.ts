@@ -61,18 +61,16 @@ export async function POST(
       );
     }
 
-    // Build answer data, computing isCorrect for quiz mode
+    // Build answer data, computing isCorrect for multiple choice questions in all modes
     const isQuiz = survey.mode === "QUIZ";
     const answerData = answers.map((a) => {
       let isCorrect: boolean | null = null;
-      if (isQuiz) {
-        const sq = survey.questions.find(
-          (sq) => sq.questionId === a.questionId
-        );
-        if (sq && sq.question.type === "MULTIPLE_CHOICE") {
-          const correctOption = sq.question.options.find((o) => o.isCorrect);
-          isCorrect = correctOption ? a.value === correctOption.text : null;
-        }
+      const sq = survey.questions.find(
+        (sq) => sq.questionId === a.questionId
+      );
+      if (sq && sq.question.type === "MULTIPLE_CHOICE") {
+        const correctOption = sq.question.options.find((o) => o.isCorrect);
+        isCorrect = correctOption ? a.value === correctOption.text : null;
       }
       return { questionId: a.questionId, value: a.value, isCorrect };
     });
@@ -108,15 +106,15 @@ export async function POST(
       where: { surveyId, studentId: session.studentId },
     });
 
-    // Calculate score for quiz
+    // Calculate score if there are any MC questions
     let score = null;
-    if (isQuiz) {
-      const correct = answerData.filter((a) => a.isCorrect === true).length;
-      const total = answerData.filter((a) => a.isCorrect !== null).length;
+    const correct = answerData.filter((a) => a.isCorrect === true).length;
+    const total = answerData.filter((a) => a.isCorrect !== null).length;
+    if (total > 0) {
       score = {
         correct,
         total,
-        percentage: total > 0 ? Math.round((correct / total) * 100) : 0,
+        percentage: Math.round((correct / total) * 100),
       };
     }
 
@@ -149,19 +147,22 @@ export async function POST(
       });
     }
 
-    // For surveys (non-quiz), also return answer IDs for feedback
+    // For surveys (non-quiz), also return answer IDs and correct/incorrect info
     let surveyResults = null;
     if (!isQuiz) {
       surveyResults = answerData.map((a) => {
         const sq = survey.questions.find(
           (sq) => sq.questionId === a.questionId
         );
+        const correctOption = sq?.question.options.find((o) => o.isCorrect);
         return {
           answerId: answerIdMap.get(a.questionId) ?? null,
           questionId: a.questionId,
           questionText: sq?.question.text,
           questionType: sq?.question.type,
           yourAnswer: a.value,
+          isCorrect: a.isCorrect,
+          correctAnswer: correctOption?.text || null,
         };
       });
     }

@@ -178,6 +178,7 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
         setSubmitted(true);
         if (data.score) setScore(data.score);
         if (data.quizResults) setQuizResults(data.quizResults);
+        if (data.surveyResults) setQuizResults(data.surveyResults);
       } else {
         setError(data.error || "Något gick fel");
       }
