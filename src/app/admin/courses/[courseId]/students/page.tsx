@@ -97,13 +97,13 @@ export default function StudentsPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Elever</h1>
+    <div className="animate-fade-in">
+      <h1 className="text-2xl font-bold mb-6 tracking-tight">Elever</h1>
 
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="card p-4 mb-6">
         <form onSubmit={handleAddBulk} className="flex items-end gap-3">
           <div>
-            <label htmlFor="student-count" className="block text-sm font-medium mb-1">Antal elever</label>
+            <label htmlFor="student-count" className="block text-sm font-semibold mb-1">Antal elever</label>
             <input
               id="student-count"
               type="number"
@@ -111,44 +111,34 @@ export default function StudentsPage() {
               max="200"
               value={count}
               onChange={(e) => setCount(e.target.value)}
-              className="border rounded p-2 text-sm w-24"
+              className="input-field w-24"
             />
           </div>
-          <button
-            type="submit"
-            disabled={adding}
-            className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50"
-          >
+          <button type="submit" disabled={adding} className="btn-primary">
             {adding ? "Lägger till..." : "Lägg till elever (1-N)"}
           </button>
-          <span className="text-xs text-gray-600">
+          <span className="text-xs text-muted">
             Skapar elevnummer 1 till {count || "N"} med autogenererade inloggningsuppgifter.
           </span>
         </form>
       </div>
 
       {credentials && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg shadow p-4 mb-6">
+        <div className="bg-warning-light border border-warning/20 rounded-xl p-4 mb-6 animate-scale-in">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-yellow-800">
+            <h2 className="font-semibold text-accent-hover">
               Inloggningsuppgifter (visas bara en gång!)
             </h2>
             <div className="flex gap-2">
-              <button
-                onClick={handleCopyCredentials}
-                className="text-xs bg-white border border-yellow-300 px-3 py-1.5 rounded hover:bg-yellow-100"
-              >
+              <button onClick={handleCopyCredentials} className="btn-secondary text-xs">
                 Kopiera alla
               </button>
-              <button
-                onClick={handleDownloadCsv}
-                className="text-xs bg-white border border-yellow-300 px-3 py-1.5 rounded hover:bg-yellow-100"
-              >
+              <button onClick={handleDownloadCsv} className="btn-secondary text-xs">
                 Ladda ner CSV
               </button>
               <button
                 onClick={() => setCredentials(null)}
-                className="text-xs text-yellow-700 px-3 py-1.5 rounded hover:bg-yellow-100"
+                className="text-xs text-muted hover:text-foreground px-3 py-1.5 rounded-lg transition-colors"
               >
                 Stäng
               </button>
@@ -157,18 +147,18 @@ export default function StudentsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-yellow-200 text-left">
-                  <th className="p-2">Elevnummer</th>
-                  <th className="p-2">Användarnamn</th>
-                  <th className="p-2">Lösenord</th>
+                <tr className="border-b border-warning/20 text-left">
+                  <th className="p-2 text-xs uppercase tracking-wider text-muted font-semibold">Elevnummer</th>
+                  <th className="p-2 text-xs uppercase tracking-wider text-muted font-semibold">Användarnamn</th>
+                  <th className="p-2 text-xs uppercase tracking-wider text-muted font-semibold">Lösenord</th>
                 </tr>
               </thead>
               <tbody>
                 {credentials.map((c) => (
-                  <tr key={c.number} className="border-b border-yellow-100 last:border-0">
+                  <tr key={c.number} className="border-b border-warning/10 last:border-0">
                     <td className="p-2">#{c.number}</td>
-                    <td className="p-2 font-mono">{c.username}</td>
-                    <td className="p-2 font-mono">{c.password}</td>
+                    <td className="p-2 font-mono text-sm">{c.username}</td>
+                    <td className="p-2 font-mono text-sm">{c.password}</td>
                   </tr>
                 ))}
               </tbody>
@@ -178,32 +168,32 @@ export default function StudentsPage() {
       )}
 
       {loading ? (
-        <div className="text-gray-500">Laddar...</div>
+        <div className="text-muted">Laddar...</div>
       ) : students.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <p className="text-gray-700">Inga elever registrerade ännu.</p>
+        <div className="card p-12 text-center">
+          <p className="text-muted">Inga elever registrerade ännu.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <div className="card overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left">
-                <th className="p-3">Elevnummer</th>
-                <th className="p-3">Användarnamn</th>
-                <th className="p-3">Antal enkätsvar</th>
-                <th className="p-3"></th>
+              <tr className="border-b border-border-light text-left">
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Elevnummer</th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Användarnamn</th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Antal enkätsvar</th>
+                <th className="p-4"></th>
               </tr>
             </thead>
             <tbody>
               {students.map((s) => (
-                <tr key={s.id} className="border-b last:border-0 hover:bg-gray-50">
-                  <td className="p-3 font-medium">#{s.number}</td>
-                  <td className="p-3 font-mono text-gray-600">{s.username}</td>
-                  <td className="p-3">{s.responseCount}</td>
-                  <td className="p-3">
+                <tr key={s.id} className="border-b border-border-light last:border-0 hover:bg-surface-muted/50 transition-colors">
+                  <td className="p-4 font-semibold">#{s.number}</td>
+                  <td className="p-4 font-mono text-muted text-sm">{s.username}</td>
+                  <td className="p-4 text-muted">{s.responseCount}</td>
+                  <td className="p-4">
                     <Link
                       href={`/admin/courses/${courseId}/students/${s.number}`}
-                      className="text-blue-600 hover:underline text-sm"
+                      className="text-primary hover:underline text-sm font-medium"
                     >
                       Visa svar
                     </Link>

@@ -127,28 +127,28 @@ export default function TopicComposer({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow p-4 mb-6 text-gray-500">
+      <div className="card p-5 mb-6 text-muted">
         Laddar ämnen...
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 mb-6">
-      <h3 className="font-semibold mb-3">Sätt ihop enkät från ämnen</h3>
+    <div className="card p-5 mb-6 animate-scale-in">
+      <h3 className="font-semibold mb-3 tracking-tight">Sätt ihop enkät från ämnen</h3>
 
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Titel..."
-        className="w-full border rounded p-2 text-sm mb-3"
+        className="input-field mb-3"
       />
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Beskrivning (valfritt)..."
         rows={2}
-        className="w-full border rounded p-2 text-sm mb-3"
+        className="input-field mb-3"
       />
 
       {allowModeSelection && (
@@ -160,6 +160,7 @@ export default function TopicComposer({
               value="SURVEY"
               checked={mode === "SURVEY"}
               onChange={() => setMode("SURVEY")}
+              className="accent-primary"
             />
             <span className="text-sm">Enkät</span>
           </label>
@@ -170,6 +171,7 @@ export default function TopicComposer({
               value="QUIZ"
               checked={mode === "QUIZ"}
               onChange={() => setMode("QUIZ")}
+              className="accent-primary"
             />
             <span className="text-sm">Quiz (rätt/fel-svar)</span>
           </label>
@@ -187,13 +189,13 @@ export default function TopicComposer({
       </label>
 
       <div className="mb-3">
-        <span className="text-sm font-medium mb-2 block">
+        <span className="text-sm font-semibold mb-2 block">
           Välj antal frågor per ämne:
         </span>
         {topics.length === 0 ? (
-          <p className="text-sm text-gray-500">Inga ämnen hittades.</p>
+          <p className="text-sm text-muted">Inga ämnen hittades.</p>
         ) : (
-          <div className="border rounded divide-y">
+          <div className="border border-border rounded-lg divide-y divide-border-light">
             {topics.map((topic) => (
               <div
                 key={topic.id}
@@ -201,7 +203,7 @@ export default function TopicComposer({
               >
                 <div>
                   <span className="text-sm font-medium">{topic.name}</span>
-                  <span className="text-xs text-gray-500 ml-2">
+                  <span className="text-xs text-muted ml-2">
                     ({topic._count.questions} tillgängliga)
                   </span>
                 </div>
@@ -217,7 +219,7 @@ export default function TopicComposer({
                     );
                     setTopicCounts((prev) => ({ ...prev, [topic.id]: val }));
                   }}
-                  className="w-20 border rounded p-1 text-sm text-center"
+                  className="input-field w-20 text-center"
                 />
               </div>
             ))}
@@ -229,17 +231,14 @@ export default function TopicComposer({
         <button
           onClick={handleCompose}
           disabled={submitting || totalSelected === 0 || !title.trim()}
-          className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary"
         >
           {submitting ? "Skapar..." : "Skapa"}
         </button>
-        <button
-          onClick={onCancel}
-          className="text-sm text-gray-600 hover:text-gray-800"
-        >
+        <button onClick={onCancel} className="text-sm text-muted hover:text-foreground transition-colors">
           Avbryt
         </button>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-muted">
           Totalt: {totalSelected} frågor
         </span>
       </div>

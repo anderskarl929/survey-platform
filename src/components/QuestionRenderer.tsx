@@ -25,9 +25,9 @@ export default function QuestionRenderer({
   return (
     <>
       {questions.map((q, i) => (
-        <div key={q.id} className="bg-white rounded-lg shadow p-6 mb-4">
+        <div key={q.id} className="card p-6 mb-4">
           <div className="flex items-start justify-between gap-2 mb-3">
-            <label className="block font-medium text-gray-900">
+            <label className="block font-semibold tracking-tight">
               {i + 1}. {q.text}
             </label>
             {flaggedIds !== undefined && (
@@ -43,8 +43,10 @@ export default function QuestionRenderer({
               {q.options.map((opt) => (
                 <label
                   key={opt}
-                  className={`flex items-center gap-3 cursor-pointer p-3 border rounded-lg hover:border-blue-300 transition-colors ${
-                    answers[q.id] === opt ? "border-blue-400 bg-blue-50" : "border-gray-200"
+                  className={`flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all duration-150 ${
+                    answers[q.id] === opt
+                      ? "border-primary bg-primary-light shadow-sm"
+                      : "border-border-light hover:border-border hover:bg-surface-muted/50"
                   }`}
                 >
                   <input
@@ -53,9 +55,9 @@ export default function QuestionRenderer({
                     value={opt}
                     checked={answers[q.id] === opt}
                     onChange={() => onAnswer(q.id, opt)}
-                    className="accent-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                    className="accent-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   />
-                  <span className="text-sm text-gray-900">{opt}</span>
+                  <span className="text-sm">{opt}</span>
                 </label>
               ))}
             </div>
@@ -65,7 +67,7 @@ export default function QuestionRenderer({
               onChange={(e) => onAnswer(q.id, e.target.value)}
               rows={3}
               placeholder="Skriv ditt svar..."
-              className="w-full border rounded p-2 text-sm"
+              className="input-field"
             />
           )}
         </div>

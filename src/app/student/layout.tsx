@@ -4,17 +4,21 @@ export default function StudentLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-background">
+      <header className="bg-surface border-b border-border-light sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <a href="/student" className="font-semibold text-gray-900 hover:text-gray-700">Dashboard</a>
-            <a href="/student/results" className="text-sm text-gray-600 hover:text-gray-900">Mina resultat</a>
+          <div className="flex items-center gap-5">
+            <a href="/student" className="font-bold text-foreground hover:text-primary transition-colors text-sm tracking-tight">
+              Dashboard
+            </a>
+            <a href="/student/results" className="text-sm text-muted hover:text-foreground transition-colors">
+              Mina resultat
+            </a>
           </div>
           <form action="/api/student/logout" method="POST">
             <button
               type="submit"
-              className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
+              className="btn-secondary text-xs"
             >
               Logga ut
             </button>

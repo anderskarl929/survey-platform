@@ -41,52 +41,57 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-6 text-center">Logga in</h1>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="max-w-sm w-full">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold tracking-tight">Välkommen</h1>
+          <p className="text-muted text-sm mt-1">Logga in med ditt elevkonto</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="login-username" className="block text-sm font-medium mb-1">Användarnamn</label>
-            <input
-              id="login-username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="T.ex. sh1a-12"
-              className="w-full border rounded p-2 text-sm"
-              autoComplete="username"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="login-password" className="block text-sm font-medium mb-1">Lösenord</label>
-            <input
-              id="login-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border rounded p-2 text-sm"
-              autoComplete="current-password"
-              required
-            />
-          </div>
-
-          {error && (
-            <div className="bg-red-50 text-red-700 text-sm p-3 rounded" role="alert">
-              {error}
+        <div className="card p-8">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="login-username" className="block text-sm font-semibold mb-1.5">Användarnamn</label>
+              <input
+                id="login-username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="T.ex. sh1a-12"
+                className="input-field"
+                autoComplete="username"
+                required
+              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading || !username || !password}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 text-sm"
-          >
-            {loading ? "Loggar in..." : "Logga in"}
-          </button>
-        </form>
+            <div>
+              <label htmlFor="login-password" className="block text-sm font-semibold mb-1.5">Lösenord</label>
+              <input
+                id="login-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-field"
+                autoComplete="current-password"
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="bg-error-light text-error text-sm p-3 rounded-lg font-medium" role="alert">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading || !username || !password}
+              className="btn-primary w-full py-2.5"
+            >
+              {loading ? "Loggar in..." : "Logga in"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

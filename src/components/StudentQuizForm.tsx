@@ -172,7 +172,7 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
       >
         <button
           onClick={() => router.push("/student")}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700"
+          className="btn-primary w-full py-3"
         >
           Tillbaka till dashboard
         </button>
@@ -188,39 +188,39 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
   return (
     <form onSubmit={handleSubmit}>
       <LockOverlay enabled={lockMode && !submitted} />
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{survey.title}</h1>
+      <div className="card p-6 mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">{survey.title}</h1>
         {survey.description && (
-          <p className="text-gray-700 mt-2">{survey.description}</p>
+          <p className="text-muted mt-2">{survey.description}</p>
         )}
         <div className="flex items-center gap-2 mt-2">
-          <span className="inline-block px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">
+          <span className="badge bg-warning-light text-warning">
             Quiz
           </span>
           {lockMode && (
-            <span className="inline-block px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">
+            <span className="badge bg-error-light text-error">
               🔒 Låst läge
             </span>
           )}
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <div className="card p-6 mb-6">
         <ProgressBar answered={answeredCount} total={totalQuestions} />
         <div className="flex items-center justify-between mt-3">
           <div>
             {error && (
-              <p className="text-red-600 text-sm" role="alert">
+              <p className="text-error text-sm font-medium" role="alert">
                 {error}
               </p>
             )}
           </div>
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-muted-light">
             {draftLoaded && draftStatus === "idle" && "Utkast laddat"}
             {draftStatus === "saving" && "Sparar utkast…"}
             {draftStatus === "saved" && "Utkast sparat"}
             {draftStatus === "error" && (
-              <span className="text-red-400">Kunde inte spara utkast</span>
+              <span className="text-error">Kunde inte spara utkast</span>
             )}
           </div>
         </div>
@@ -238,14 +238,14 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
           type="button"
           onClick={handleSaveDraft}
           disabled={saving || submitting}
-          className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 disabled:opacity-50 border border-gray-300"
+          className="btn-secondary flex-1 py-3"
         >
           {saving ? "Sparar..." : draftStatus === "saved" && !saving ? "Sparat — du kan fortsätta senare" : "Spara"}
         </button>
         <button
           type="submit"
           disabled={submitting || answeredCount < totalQuestions}
-          className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary flex-1 py-3"
         >
           {submitting ? "Skickar..." : "Skicka svar"}
         </button>

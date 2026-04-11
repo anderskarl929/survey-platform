@@ -41,65 +41,58 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-6">
-          Admin-inloggning
-        </h1>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="max-w-sm w-full">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold tracking-tight">Enkätplattform</h1>
+          <p className="text-muted text-sm mt-1">Admin-inloggning</p>
+        </div>
 
-        {error && (
-          <div
-            className="bg-red-50 text-red-700 p-3 rounded mb-4 text-sm"
-            role="alert"
-          >
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1"
+        <div className="card p-8">
+          {error && (
+            <div
+              className="bg-error-light text-error p-3 rounded-lg mb-4 text-sm font-medium"
+              role="alert"
             >
-              E-post
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="admin@example.com"
-            />
-          </div>
+              {error}
+            </div>
+          )}
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Lösenord
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold mb-1.5">
+                E-post
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="input-field"
+                placeholder="admin@example.com"
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium"
-          >
-            {loading ? "Loggar in..." : "Logga in"}
-          </button>
-        </form>
+            <div>
+              <label htmlFor="password" className="block text-sm font-semibold mb-1.5">
+                Lösenord
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="input-field"
+              />
+            </div>
+
+            <button type="submit" disabled={loading} className="btn-primary w-full py-2.5">
+              {loading ? "Loggar in..." : "Logga in"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

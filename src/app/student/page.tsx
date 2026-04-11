@@ -67,17 +67,14 @@ export default async function StudentDashboard() {
   }));
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-900">{course.name}</h2>
-        <p className="text-sm text-gray-500">Kurskod: {course.code}</p>
+        <h2 className="text-xl font-bold tracking-tight">{course.name}</h2>
+        <p className="text-sm text-muted mt-0.5">Kurskod: <span className="font-mono tracking-wider">{course.code}</span></p>
       </div>
 
       <div className="mb-4">
-        <Link
-          href="/student/results"
-          className="text-sm text-blue-600 hover:underline"
-        >
+        <Link href="/student/results" className="text-sm text-primary font-medium hover:underline">
           Visa alla mina resultat &rarr;
         </Link>
       </div>
@@ -85,9 +82,9 @@ export default async function StudentDashboard() {
       {/* Flagged questions section */}
       {flaggedData.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 tracking-tight">
             🚩 Frågor att öva på
-            <span className="text-sm font-normal text-gray-500">
+            <span className="text-sm font-normal text-muted">
               ({flaggedData.length})
             </span>
           </h3>
@@ -96,7 +93,7 @@ export default async function StudentDashboard() {
       )}
 
       {surveys.length === 0 ? (
-        <p className="text-gray-500 text-center py-8">
+        <p className="text-muted text-center py-12">
           Inga quiz tillgängliga ännu.
         </p>
       ) : (
@@ -117,35 +114,35 @@ export default async function StudentDashboard() {
                 : 0;
 
             return (
-              <div key={survey.id} className="bg-white rounded-lg shadow p-5">
+              <div key={survey.id} className="card p-5">
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div>
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-semibold tracking-tight">
                       {survey.title}
                     </h3>
                     {survey.description && (
-                      <p className="text-sm text-gray-500 mt-0.5">
+                      <p className="text-sm text-muted mt-0.5">
                         {survey.description}
                       </p>
                     )}
                   </div>
                   {allMastered && (
-                    <span className="shrink-0 text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
-                      Klar ✓
+                    <span className="badge bg-success-light text-success-dark">
+                      Klar
                     </span>
                   )}
                 </div>
 
                 <div className="mb-4">
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                  <div className="flex justify-between text-xs text-muted mb-1.5">
                     <span>
                       {masteredIds.length} / {questionIds.length} frågor klarade
                     </span>
-                    <span>{masteryPercent}%</span>
+                    <span className="font-semibold">{masteryPercent}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-surface-muted rounded-full h-2">
                     <div
-                      className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                      className="bg-success h-2 rounded-full transition-all duration-500"
                       style={{ width: `${masteryPercent}%` }}
                     />
                   </div>
@@ -155,12 +152,12 @@ export default async function StudentDashboard() {
                   <div className="flex items-center gap-3">
                     <Link
                       href={`/student/quiz/${survey.id}`}
-                      className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                      className="btn-primary inline-block"
                     >
                       {hasDraft ? "Fortsätt" : hasResponded ? "Öva igen" : "Starta"}
                     </Link>
                     {hasDraft && (
-                      <span className="text-xs text-amber-600">
+                      <span className="text-xs text-warning">
                         Sparat utkast
                       </span>
                     )}

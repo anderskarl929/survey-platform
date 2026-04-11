@@ -14,16 +14,21 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/admin/login");
   }
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50 text-gray-900">
+    <div className="flex flex-col md:flex-row min-h-screen bg-background">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-primary focus:text-white focus:px-4 focus:py-2 focus:rounded"
       >
         Hoppa till innehåll
       </a>
       <BaseSidebar
         links={adminLinks}
-        headerContent={<h1 className="text-lg font-bold mb-6 px-3">Enkätplattform</h1>}
+        headerContent={
+          <div className="mb-6 px-3">
+            <h1 className="text-lg font-bold text-white tracking-tight">Enkätplattform</h1>
+            <p className="text-xs text-white/50 mt-0.5">Administration</p>
+          </div>
+        }
         mobileTopbar={<span className="font-bold text-sm">Enkätplattform</span>}
       />
       <main id="main-content" className="flex-1 p-4 md:p-8">

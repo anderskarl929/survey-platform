@@ -46,8 +46,8 @@ export default function ResultsCharts({
   return (
     <div className="space-y-6">
       {questions.map((q) => (
-        <div key={q.id} className="bg-white rounded-lg shadow p-6">
-          <h3 className="font-semibold mb-4">{q.text}</h3>
+        <div key={q.id} className="card p-6">
+          <h3 className="font-semibold mb-4 tracking-tight">{q.text}</h3>
 
           {q.type === "MULTIPLE_CHOICE" ? (
             <>
@@ -62,15 +62,15 @@ export default function ResultsCharts({
                     layout="vertical"
                     margin={{ left: 100 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
                     <XAxis type="number" allowDecimals={false} />
                     <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} />
                     <Tooltip />
-                    <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                    <Bar dataKey="count" radius={[0, 6, 6, 0]}>
                       {Object.entries(q.optionCounts).map(([name]) => (
                         <Cell
                           key={name}
-                          fill={isQuiz && q.correctAnswer === name ? "#22c55e" : "#3b82f6"}
+                          fill={isQuiz && q.correctAnswer === name ? "var(--success)" : "var(--primary)"}
                         />
                       ))}
                     </Bar>
@@ -78,13 +78,13 @@ export default function ResultsCharts({
                 </ResponsiveContainer>
               </div>
               {isQuiz && q.correctAnswer && (
-                <p className="text-sm text-green-700 mt-2">
-                  Rätt svar: <span className="font-medium">{q.correctAnswer}</span>
+                <p className="text-sm text-success mt-2">
+                  Rätt svar: <span className="font-semibold">{q.correctAnswer}</span>
                 </p>
               )}
               {q.studentAnswers && q.studentAnswers.length > 0 && (
                 <details className="mt-3">
-                  <summary className="text-sm text-gray-700 cursor-pointer hover:text-gray-900">
+                  <summary className="text-sm text-muted cursor-pointer hover:text-foreground transition-colors">
                     Visa per elev ({q.studentAnswers.length} svar)
                   </summary>
                   <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -93,16 +93,16 @@ export default function ResultsCharts({
                       .map((sa) => (
                         <div
                           key={sa.studentNumber}
-                          className={`rounded p-2 text-xs ${
+                          className={`rounded-lg p-2 text-xs ${
                             isQuiz
                               ? sa.isCorrect
-                                ? "bg-green-50 border border-green-200"
-                                : "bg-red-50 border border-red-200"
-                              : "bg-gray-50"
+                                ? "bg-success-light border border-success/20"
+                                : "bg-error-light border border-error/20"
+                              : "bg-surface-muted"
                           }`}
                         >
-                          <span className="font-medium">#{sa.studentNumber}</span>{" "}
-                          <span className={isQuiz && !sa.isCorrect ? "text-red-600" : "text-gray-600"}>
+                          <span className="font-semibold">#{sa.studentNumber}</span>{" "}
+                          <span className={isQuiz && !sa.isCorrect ? "text-error" : "text-muted"}>
                             {sa.value}
                           </span>
                         </div>
@@ -119,17 +119,17 @@ export default function ResultsCharts({
                   .map((sa) => (
                     <div
                       key={sa.studentNumber}
-                      className="bg-gray-50 rounded p-3 text-sm"
+                      className="bg-surface-muted rounded-lg p-3 text-sm"
                     >
-                      <span className="font-medium text-gray-700">#{sa.studentNumber}</span>{" "}
+                      <span className="font-semibold text-muted">#{sa.studentNumber}</span>{" "}
                       {sa.value}
                     </div>
                   ))
               ) : q.type === "FREE_TEXT" && q.textResponses.length === 0 ? (
-                <p className="text-gray-600 text-sm">Inga svar ännu.</p>
+                <p className="text-muted text-sm">Inga svar ännu.</p>
               ) : (
                 q.textResponses.map((text, i) => (
-                  <div key={i} className="bg-gray-50 rounded p-3 text-sm">
+                  <div key={i} className="bg-surface-muted rounded-lg p-3 text-sm">
                     {text}
                   </div>
                 ))

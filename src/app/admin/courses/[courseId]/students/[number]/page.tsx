@@ -33,41 +33,41 @@ export default function StudentDetailPage() {
   }, [courseId, number]);
 
   if (!data) {
-    return <div className="text-gray-700">Laddar...</div>;
+    return <div className="text-muted">Laddar...</div>;
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-2">Elev #{data.studentNumber}</h1>
-      <p className="text-gray-700 mb-6">
+    <div className="animate-fade-in">
+      <h1 className="text-2xl font-bold mb-2 tracking-tight">Elev #{data.studentNumber}</h1>
+      <p className="text-muted mb-6">
         Svarat på {data.surveys.length} enkät{data.surveys.length !== 1 ? "er" : ""}
       </p>
 
       {data.surveys.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <p className="text-gray-700">Inga svar registrerade.</p>
+        <div className="card p-12 text-center">
+          <p className="text-muted">Inga svar registrerade.</p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {data.surveys.map((s) => (
-            <div key={s.surveyId} className="bg-white rounded-lg shadow p-6">
+            <div key={s.surveyId} className="card p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">{s.surveyTitle}</h2>
-                <span className="text-xs text-gray-600">
+                <h2 className="text-lg font-semibold tracking-tight">{s.surveyTitle}</h2>
+                <span className="text-xs text-muted">
                   {new Date(s.respondedAt).toLocaleDateString("sv-SE")}
                 </span>
               </div>
               <div className="space-y-3">
                 {s.answers.map((a) => (
-                  <div key={a.questionId} className="border-b last:border-0 pb-3 last:pb-0">
-                    <div className="text-sm text-gray-600 mb-1">{a.questionText}</div>
+                  <div key={a.questionId} className="border-b border-border-light last:border-0 pb-3 last:pb-0">
+                    <div className="text-sm text-muted mb-1">{a.questionText}</div>
                     <div className="text-sm font-medium">
                       {a.questionType === "MULTIPLE_CHOICE" ? (
-                        <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
+                        <span className="bg-primary-light text-primary px-2.5 py-0.5 rounded-lg text-xs font-semibold">
                           {a.value}
                         </span>
                       ) : (
-                        <span className="italic">&quot;{a.value}&quot;</span>
+                        <span className="italic text-foreground">&quot;{a.value}&quot;</span>
                       )}
                     </div>
                   </div>

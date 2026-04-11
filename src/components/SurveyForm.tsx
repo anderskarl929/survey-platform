@@ -206,30 +206,30 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
   return (
     <form onSubmit={handleSubmit}>
       <LockOverlay enabled={survey.lockMode && !submitted} />
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{survey.title}</h1>
+      <div className="card p-6 mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">{survey.title}</h1>
         {survey.description && (
-          <p className="text-gray-700 mt-2">{survey.description}</p>
+          <p className="text-muted mt-2">{survey.description}</p>
         )}
         <div className="flex items-center gap-2 mt-2">
           {isQuiz && (
-            <span className="inline-block px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">Quiz</span>
+            <span className="badge bg-warning-light text-warning">Quiz</span>
           )}
           {survey.lockMode && (
-            <span className="inline-block px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">
+            <span className="badge bg-error-light text-error">
               🔒 Låst läge
             </span>
           )}
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <div className="card p-6 mb-6">
         <div className="mb-6">
           <ProgressBar answered={answeredCount} total={totalQuestions} />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="student-number" className="block font-medium mb-2">Ditt elevnummer</label>
+            <label htmlFor="student-number" className="block font-semibold mb-2 text-sm">Ditt elevnummer</label>
             <input
               id="student-number"
               type="number"
@@ -237,34 +237,34 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
               value={studentNumber}
               onChange={(e) => setStudentNumber(e.target.value)}
               placeholder="T.ex. 7"
-              className="w-full border rounded p-2 text-sm"
+              className="input-field"
               required
             />
           </div>
           <div>
-            <label htmlFor="course-code" className="block font-medium mb-2">Kurskod</label>
+            <label htmlFor="course-code" className="block font-semibold mb-2 text-sm">Kurskod</label>
             <input
               id="course-code"
               type="text"
               value={courseCode}
               onChange={(e) => setCourseCode(e.target.value.toUpperCase())}
               placeholder="T.ex. MAT7A"
-              className="w-full border rounded p-2 text-sm font-mono uppercase tracking-wider"
+              className="input-field font-mono uppercase tracking-wider"
               required
             />
           </div>
         </div>
         <div className="flex items-center justify-between mt-2">
           <div>
-            {error && <p className="text-red-600 text-sm" role="alert">{error}</p>}
+            {error && <p className="text-error text-sm mt-2 font-medium" role="alert">{error}</p>}
           </div>
           {isLoggedIn && (
-            <div className="text-xs text-gray-400">
+            <div className="text-xs text-muted-light">
               {draftLoaded && draftStatus === "idle" && "Utkast laddat"}
               {draftStatus === "saving" && "Sparar utkast…"}
               {draftStatus === "saved" && "Utkast sparat"}
               {draftStatus === "error" && (
-                <span className="text-red-400">Kunde inte spara utkast</span>
+                <span className="text-error">Kunde inte spara utkast</span>
               )}
             </div>
           )}
@@ -284,7 +284,7 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
             type="button"
             onClick={handleSaveDraft}
             disabled={saving || submitting}
-            className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 disabled:opacity-50 border border-gray-300"
+            className="btn-secondary flex-1 py-3"
           >
             {saving ? "Sparar..." : draftStatus === "saved" && !saving ? "Sparat — du kan fortsätta senare" : "Spara"}
           </button>
@@ -292,7 +292,7 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
         <button
           type="submit"
           disabled={submitting}
-          className={`${isLoggedIn ? "flex-1" : "w-full"} bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50`}
+          className={`btn-primary ${isLoggedIn ? "flex-1" : "w-full"} py-3`}
         >
           {submitting ? "Skickar..." : "Skicka svar"}
         </button>

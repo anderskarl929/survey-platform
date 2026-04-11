@@ -156,20 +156,17 @@ export default function SurveysManager({
     : questions;
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Enkäter</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Enkäter</h1>
         <div className="flex gap-2">
-          <button
-            onClick={openCreate}
-            className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
-          >
+          <button onClick={openCreate} className="btn-primary">
             Skapa enkät
           </button>
           {allowModeSelection && (
             <button
               onClick={() => setCreateMode("compose")}
-              className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700"
+              className="btn-accent"
             >
               Sätt ihop enkät
             </button>
@@ -187,20 +184,20 @@ export default function SurveysManager({
       )}
 
       {createMode === "manual" && (
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <h3 className="font-semibold mb-3">Ny enkät</h3>
+        <div className="card p-5 mb-6 animate-scale-in">
+          <h3 className="font-semibold mb-3 tracking-tight">Ny enkät</h3>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Titel..."
-            className="w-full border rounded p-2 text-sm mb-3"
+            className="input-field mb-3"
           />
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Beskrivning (valfritt)..."
             rows={2}
-            className="w-full border rounded p-2 text-sm mb-3"
+            className="input-field mb-3"
           />
 
           {allowModeSelection && (
@@ -212,6 +209,7 @@ export default function SurveysManager({
                   value="SURVEY"
                   checked={mode === "SURVEY"}
                   onChange={() => setMode("SURVEY")}
+                  className="accent-primary"
                 />
                 <span className="text-sm">Enkät</span>
               </label>
@@ -222,6 +220,7 @@ export default function SurveysManager({
                   value="QUIZ"
                   checked={mode === "QUIZ"}
                   onChange={() => setMode("QUIZ")}
+                  className="accent-primary"
                 />
                 <span className="text-sm">Quiz (rätt/fel-svar)</span>
               </label>
@@ -233,48 +232,50 @@ export default function SurveysManager({
               type="checkbox"
               checked={lockMode}
               onChange={(e) => setLockMode(e.target.checked)}
+              className="accent-primary"
             />
             <span className="text-sm">🔒 Låst läge</span>
-            <span className="text-xs text-gray-500">(elever kan inte byta flik under quiz)</span>
+            <span className="text-xs text-muted">(elever kan inte byta flik under quiz)</span>
           </label>
 
           <div className="mb-3">
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-sm font-medium">Välj frågor:</span>
+              <span className="text-sm font-semibold">Välj frågor:</span>
               <select
                 value={filterTopic}
                 onChange={(e) => setFilterTopic(e.target.value)}
-                className="border rounded p-1 text-sm"
+                className="input-field w-auto py-1"
               >
                 <option value="">Alla ämnen</option>
                 {topics.map((t) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
-              <span className="text-sm text-gray-700">{selectedIds.length} valda</span>
+              <span className="text-sm text-muted">{selectedIds.length} valda</span>
             </div>
-            <div className="max-h-60 overflow-y-auto border rounded">
+            <div className="max-h-60 overflow-y-auto border border-border rounded-lg">
               {filteredQuestions.map((q) => (
                 <label
                   key={q.id}
-                  className="flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer border-b last:border-0"
+                  className="flex items-center gap-2 p-3 hover:bg-surface-muted/50 cursor-pointer border-b border-border-light last:border-0 transition-colors"
                 >
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(q.id)}
                     onChange={() => toggleQuestion(q.id)}
+                    className="accent-primary"
                   />
                   <span className="text-sm flex-1">{q.text}</span>
                   <span
-                    className={`px-2 py-0.5 rounded text-xs ${
+                    className={`badge ${
                       q.type === "MULTIPLE_CHOICE"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-purple-100 text-purple-700"
+                        ? "bg-primary-light text-primary"
+                        : "bg-accent-light text-accent"
                     }`}
                   >
                     {q.type === "MULTIPLE_CHOICE" ? "Flerval" : "Fritext"}
                   </span>
-                  <span className="text-xs text-gray-600">{q.topic.name}</span>
+                  <span className="text-xs text-muted">{q.topic.name}</span>
                 </label>
               ))}
             </div>
@@ -283,7 +284,7 @@ export default function SurveysManager({
           <button
             onClick={handleCreate}
             disabled={!title.trim() || selectedIds.length === 0}
-            className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50"
+            className="btn-primary"
           >
             Skapa
           </button>
@@ -291,51 +292,51 @@ export default function SurveysManager({
       )}
 
       {loading ? (
-        <div className="text-gray-500">Laddar...</div>
+        <div className="text-muted">Laddar...</div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <div className="card overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left">
-                <th className="p-3">Titel</th>
-                <th className="p-3">Frågor</th>
-                <th className="p-3">Svar</th>
-                <th className="p-3">Delningslänk</th>
-                <th className="p-3">Skapad</th>
-                <th className="p-3"></th>
+              <tr className="border-b border-border-light text-left">
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Titel</th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Frågor</th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Svar</th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Delningslänk</th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Skapad</th>
+                <th className="p-4"></th>
               </tr>
             </thead>
             <tbody>
               {surveys.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-3 text-gray-700">
+                  <td colSpan={6} className="p-4 text-muted">
                     Inga enkäter skapade ännu.
                   </td>
                 </tr>
               ) : (
                 surveys.map((s) => (
-                  <tr key={s.id} className="border-b last:border-0 hover:bg-gray-50">
-                    <td className="p-3 font-medium">
+                  <tr key={s.id} className="border-b border-border-light last:border-0 hover:bg-surface-muted/50 transition-colors">
+                    <td className="p-4 font-medium">
                       <div className="flex items-center gap-2">
                         {s.title}
-                        <span className="text-xs text-gray-400 font-mono">#{s.id}</span>
+                        <span className="text-xs text-muted-light font-mono">#{s.id}</span>
                       </div>
                       {allowModeSelection && s.mode === "QUIZ" && (
-                        <span className="ml-2 px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">
+                        <span className="ml-2 badge bg-warning-light text-warning">
                           Quiz
                         </span>
                       )}
                       {s.lockMode && (
-                        <span className="ml-2 px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">
+                        <span className="ml-2 badge bg-error-light text-error">
                           🔒
                         </span>
                       )}
                     </td>
-                    <td className="p-3">{s._count.questions}</td>
-                    <td className="p-3">{s._count.responses}</td>
-                    <td className="p-3">
+                    <td className="p-4 text-muted">{s._count.questions}</td>
+                    <td className="p-4 text-muted">{s._count.responses}</td>
+                    <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <code className="bg-gray-100 px-2 py-0.5 rounded text-xs truncate max-w-[200px]">
+                        <code className="bg-surface-muted px-2 py-0.5 rounded-lg text-xs truncate max-w-[200px] font-mono">
                           /s/{s.shareCode}
                         </code>
                         <button
@@ -346,28 +347,28 @@ export default function SurveysManager({
                             setCopiedId(s.id);
                             setTimeout(() => setCopiedId(null), 2000);
                           }}
-                          className="text-xs text-blue-600 hover:text-blue-800 whitespace-nowrap"
+                          className="text-xs text-primary hover:underline font-medium whitespace-nowrap"
                           title="Kopiera full URL"
                         >
                           {copiedId === s.id ? "Kopierad!" : "Kopiera länk"}
                         </button>
                       </div>
                     </td>
-                    <td className="p-3">
+                    <td className="p-4 text-muted">
                       {new Date(s.createdAt).toLocaleDateString("sv-SE")}
                     </td>
-                    <td className="p-3">
+                    <td className="p-4">
                       <div className="flex items-center gap-3">
                         <Link
                           href={`${resultsBasePath}/${s.id}/results`}
-                          className="text-blue-600 hover:underline text-sm"
+                          className="text-primary hover:underline text-sm font-medium"
                         >
                           Resultat
                         </Link>
                         <button
                           onClick={() => deleteSurvey(s.id)}
                           disabled={deletingId === s.id}
-                          className="text-red-600 hover:text-red-800 text-sm disabled:opacity-50"
+                          className="text-error hover:underline text-sm font-medium disabled:opacity-50"
                         >
                           {deletingId === s.id ? "Raderar..." : "Radera"}
                         </button>

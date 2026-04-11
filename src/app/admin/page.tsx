@@ -15,30 +15,28 @@ export default async function CoursesPage() {
   });
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Mina kurser</h1>
-        <Link
-          href="/admin/courses/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
-        >
+    <div className="animate-fade-in">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Mina kurser</h1>
+          <p className="text-muted text-sm mt-1">{courses.length} kurser</p>
+        </div>
+        <Link href="/admin/courses/new" className="btn-primary">
           Skapa ny kurs
         </Link>
       </div>
 
       {courses.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <p className="text-gray-700 mb-4">Inga kurser skapade ännu.</p>
-          <Link
-            href="/admin/courses/new"
-            className="text-blue-600 hover:underline"
-          >
+        <div className="card p-12 text-center">
+          <div className="text-4xl mb-4 opacity-40">&#128218;</div>
+          <p className="text-muted mb-4">Inga kurser skapade ännu.</p>
+          <Link href="/admin/courses/new" className="text-primary font-semibold hover:underline">
             Skapa din första kurs
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {courses.map((course) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {courses.map((course, i) => {
             const totalResponses = course.surveys.reduce(
               (sum, s) => sum + s._count.responses,
               0
@@ -47,25 +45,26 @@ export default async function CoursesPage() {
               <Link
                 key={course.id}
                 href={`/admin/courses/${course.id}`}
-                className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+                className="card card-hover p-6 block"
+                style={{ animationDelay: `${i * 50}ms` }}
               >
-                <h2 className="text-lg font-semibold mb-1">{course.name}</h2>
-                <div className="text-xs text-gray-600 mb-3 font-mono">Kod: {course.code}</div>
-                <div className="grid grid-cols-3 gap-2 text-sm">
-                  <div>
-                    <div className="text-2xl font-bold">{course._count.topics}</div>
-                    <div className="text-gray-700">Ämnen</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold">{course._count.surveys}</div>
-                    <div className="text-gray-700">Enkäter</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold">{totalResponses}</div>
-                    <div className="text-gray-700">Svar</div>
-                  </div>
+                <h2 className="text-lg font-semibold mb-1 tracking-tight">{course.name}</h2>
+                <div className="text-xs text-muted mb-4 font-mono tracking-wider">
+                  {course.code}
                 </div>
-                <div className="text-xs text-gray-600 mt-3">
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { value: course._count.topics, label: "Ämnen" },
+                    { value: course._count.surveys, label: "Enkäter" },
+                    { value: totalResponses, label: "Svar" },
+                  ].map((s) => (
+                    <div key={s.label}>
+                      <div className="text-2xl font-bold text-primary">{s.value}</div>
+                      <div className="text-muted text-xs mt-0.5">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-xs text-muted-light mt-4 pt-3 border-t border-border-light">
                   Skapad {new Date(course.createdAt).toLocaleDateString("sv-SE")}
                 </div>
               </Link>

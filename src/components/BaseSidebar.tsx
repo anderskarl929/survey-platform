@@ -23,34 +23,38 @@ export default function BaseSidebar({ links, headerContent, mobileTopbar }: Base
   const navContent = (
     <>
       {headerContent}
-      {links.map((link) => {
-        const active = link.exact
-          ? pathname === link.href
-          : pathname.startsWith(link.href);
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            onClick={() => setMobileOpen(false)}
-            className={`px-3 py-2 rounded text-sm ${
-              active ? "bg-gray-700 font-medium" : "hover:bg-gray-800"
-            }`}
-          >
-            {link.label}
-          </Link>
-        );
-      })}
+      <nav className="flex flex-col gap-1">
+        {links.map((link) => {
+          const active = link.exact
+            ? pathname === link.href
+            : pathname.startsWith(link.href);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setMobileOpen(false)}
+              className={`px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
+                active
+                  ? "bg-sidebar-active text-white font-semibold shadow-sm"
+                  : "text-white/75 hover:bg-sidebar-hover hover:text-white"
+              }`}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
+      </nav>
     </>
   );
 
   return (
     <>
       {/* Mobile topbar */}
-      <div className="md:hidden bg-gray-900 text-white p-3 flex items-center justify-between">
+      <div className="md:hidden bg-sidebar-bg text-white p-3 flex items-center justify-between">
         {mobileTopbar}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 rounded hover:bg-gray-800"
+          className="p-2 rounded-lg hover:bg-sidebar-hover transition-colors"
           aria-label={mobileOpen ? "Stäng meny" : "Öppna meny"}
           aria-expanded={mobileOpen}
         >
@@ -70,17 +74,17 @@ export default function BaseSidebar({ links, headerContent, mobileTopbar }: Base
       {mobileOpen && (
         <>
           <div
-            className="md:hidden fixed inset-0 bg-black/50 z-40"
+            className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="md:hidden fixed top-0 left-0 w-64 bg-gray-900 text-white min-h-screen p-4 flex flex-col gap-2 z-50">
+          <aside className="md:hidden fixed top-0 left-0 w-64 bg-sidebar-bg text-white min-h-screen p-5 flex flex-col gap-1 z-50 animate-slide-in">
             {navContent}
           </aside>
         </>
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-56 bg-gray-900 text-white min-h-screen p-4 flex-col gap-2">
+      <aside className="hidden md:flex w-60 bg-sidebar-bg text-white min-h-screen p-5 flex-col gap-1">
         {navContent}
       </aside>
     </>

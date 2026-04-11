@@ -35,28 +35,30 @@ export default function QuizResultsDisplay({
   children,
 }: QuizResultsDisplayProps) {
   return (
-    <div>
-      <div className="bg-white rounded-lg shadow p-8 text-center mb-6">
+    <div className="animate-fade-in">
+      <div className="card p-8 text-center mb-6">
         <div className="text-4xl mb-4">
           {isQuiz ? (score && score.percentage >= 50 ? "\u2B50" : "\uD83D\uDCDD") : "\u2713"}
         </div>
-        <h2 className="text-xl font-bold mb-2">
+        <h2 className="text-xl font-bold mb-2 tracking-tight">
           {isQuiz ? "Resultat" : "Tack för ditt svar!"}
         </h2>
         {score && (
           <div className="mb-4">
-            <div className="text-3xl font-bold text-blue-600">
+            <div className={`text-3xl font-bold ${
+              score.percentage >= 80 ? "text-success" : score.percentage >= 50 ? "text-warning" : "text-error"
+            }`}>
               {score.correct} / {score.total}
             </div>
-            <div className="text-gray-700">{score.percentage}% rätt</div>
+            <div className="text-muted">{score.percentage}% rätt</div>
           </div>
         )}
         {isQuiz && flaggedIds !== undefined && (
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-muted-light mt-2">
             🚩 Markera frågor du vill öva mer på — de sparas på din dashboard.
           </p>
         )}
-        {!isQuiz && <p className="text-gray-700">Dina svar har skickats in.</p>}
+        {!isQuiz && <p className="text-muted">Dina svar har skickats in.</p>}
       </div>
 
       {quizResults && (
@@ -64,16 +66,16 @@ export default function QuizResultsDisplay({
           {quizResults.map((r, i) => (
             <div
               key={r.questionId}
-              className={`rounded-lg shadow p-4 ${
+              className={`card p-4 border-l-4 ${
                 r.isCorrect === true
-                  ? "bg-green-50 border border-green-200"
+                  ? "border-l-success bg-success-light/30"
                   : r.isCorrect === false
-                  ? "bg-red-50 border border-red-200"
-                  : "bg-white"
+                  ? "border-l-error bg-error-light/30"
+                  : ""
               }`}
             >
               <div className="flex items-start gap-2">
-                <span className="font-medium text-sm">{i + 1}.</span>
+                <span className="font-semibold text-sm">{i + 1}.</span>
                 <div className="flex-1">
                   <p className="font-medium text-sm mb-1">{r.questionText}</p>
                   <p className="text-sm">
@@ -81,16 +83,16 @@ export default function QuizResultsDisplay({
                     <span
                       className={
                         r.isCorrect === false
-                          ? "text-red-700 line-through"
-                          : "text-green-700 font-medium"
+                          ? "text-error line-through"
+                          : "text-success font-semibold"
                       }
                     >
                       {r.yourAnswer}
                     </span>
                   </p>
                   {r.isCorrect === false && r.correctAnswer && (
-                    <p className="text-sm text-green-700">
-                      Rätt svar: <span className="font-medium">{r.correctAnswer}</span>
+                    <p className="text-sm text-success">
+                      Rätt svar: <span className="font-semibold">{r.correctAnswer}</span>
                     </p>
                   )}
                   {flaggedIds !== undefined && (

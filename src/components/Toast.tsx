@@ -35,8 +35,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={toast.id}
             role="status"
-            className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm font-medium text-white transition-all animate-[fadeIn_0.2s_ease-out] ${
-              toast.type === "success" ? "bg-green-600" : "bg-red-600"
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold text-white transition-all animate-scale-in ${
+              toast.type === "success"
+                ? "bg-success shadow-lg shadow-success/20"
+                : "bg-error shadow-lg shadow-error/20"
             }`}
           >
             <span>{toast.message}</span>
@@ -45,7 +47,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               className="ml-1 opacity-70 hover:opacity-100 text-white"
               aria-label="Stäng"
             >
-              ✕
+              &times;
             </button>
           </div>
         ))}
@@ -57,7 +59,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 export function useToast() {
   const ctx = useContext(ToastContext);
   if (!ctx) {
-    // Fallback for components outside provider - use alert as fallback
     return {
       showToast: (message: string) => {
         // eslint-disable-next-line no-alert

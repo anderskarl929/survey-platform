@@ -39,18 +39,18 @@ export default async function StudentResultsPage() {
   });
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="mb-4">
-        <Link href="/student" className="text-sm text-blue-600 hover:underline">
+        <Link href="/student" className="text-sm text-primary font-medium hover:underline">
           &larr; Tillbaka till dashboard
         </Link>
       </div>
 
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Mina resultat</h2>
+      <h2 className="text-xl font-bold tracking-tight mb-4">Mina resultat</h2>
 
       {results.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <p className="text-gray-500">Du har inte svarat på några enkäter ännu.</p>
+        <div className="card p-12 text-center">
+          <p className="text-muted">Du har inte svarat på några enkäter ännu.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -58,14 +58,14 @@ export default async function StudentResultsPage() {
             <Link
               key={r.responseId}
               href={`/student/results/${r.responseId}`}
-              className="block bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
+              className="block card card-hover p-4"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold tracking-tight">
                     {r.surveyTitle}
                   </h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-muted mt-0.5">
                     {r.respondedAt.toLocaleDateString("sv-SE")}
                   </p>
                 </div>
@@ -75,25 +75,25 @@ export default async function StudentResultsPage() {
                       <span
                         className={`text-lg font-bold ${
                           r.score.percentage >= 80
-                            ? "text-green-600"
+                            ? "text-success"
                             : r.score.percentage >= 50
-                              ? "text-yellow-600"
-                              : "text-red-600"
+                              ? "text-warning"
+                              : "text-error"
                         }`}
                       >
                         {r.score.correct}/{r.score.total}
                       </span>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted">
                         {r.score.percentage}% rätt
                       </p>
                     </div>
                   )}
                   {r.mode === "SURVEY" && (
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                    <span className="badge bg-surface-muted text-muted">
                       Enkät
                     </span>
                   )}
-                  <span className="text-gray-400">&rsaquo;</span>
+                  <span className="text-muted-light">&rsaquo;</span>
                 </div>
               </div>
             </Link>

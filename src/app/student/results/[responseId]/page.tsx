@@ -40,21 +40,18 @@ export default async function ResultDetailPage({
   ).length;
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="mb-4">
-        <Link
-          href="/student/results"
-          className="text-sm text-blue-600 hover:underline"
-        >
+        <Link href="/student/results" className="text-sm text-primary font-medium hover:underline">
           &larr; Tillbaka till resultat
         </Link>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-5 mb-6">
-        <h2 className="text-xl font-bold text-gray-900">
+      <div className="card p-5 mb-6">
+        <h2 className="text-xl font-bold tracking-tight">
           {response.survey.title}
         </h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-muted mt-1">
           Besvarad {response.createdAt.toLocaleDateString("sv-SE")}
         </p>
         {isQuiz && totalGraded > 0 && (
@@ -62,15 +59,15 @@ export default async function ResultDetailPage({
             <span
               className={`text-2xl font-bold ${
                 Math.round((correctCount / totalGraded) * 100) >= 80
-                  ? "text-green-600"
+                  ? "text-success"
                   : Math.round((correctCount / totalGraded) * 100) >= 50
-                    ? "text-yellow-600"
-                    : "text-red-600"
+                    ? "text-warning"
+                    : "text-error"
               }`}
             >
               {correctCount}/{totalGraded} rätt
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-muted">
               ({Math.round((correctCount / totalGraded) * 100)}%)
             </span>
           </div>
@@ -89,28 +86,28 @@ export default async function ResultDetailPage({
           return (
             <div
               key={answer.id}
-              className={`bg-white rounded-lg shadow p-4 border-l-4 ${
+              className={`card p-4 border-l-4 ${
                 isCorrect
-                  ? "border-green-500"
+                  ? "border-l-success"
                   : isWrong
-                    ? "border-red-500"
-                    : "border-gray-200"
+                    ? "border-l-error"
+                    : "border-l-border"
               }`}
             >
-              <p className="font-medium text-gray-900 mb-2">
+              <p className="font-medium mb-2">
                 {idx + 1}. {answer.question.text}
               </p>
 
               <div className="text-sm space-y-1">
                 <p>
-                  <span className="text-gray-500">Ditt svar: </span>
+                  <span className="text-muted">Ditt svar: </span>
                   <span
                     className={`font-medium ${
                       isCorrect
-                        ? "text-green-700"
+                        ? "text-success"
                         : isWrong
-                          ? "text-red-700"
-                          : "text-gray-900"
+                          ? "text-error"
+                          : ""
                     }`}
                   >
                     {answer.value}
@@ -118,8 +115,8 @@ export default async function ResultDetailPage({
                 </p>
                 {isWrong && correctOption && (
                   <p>
-                    <span className="text-gray-500">Rätt svar: </span>
-                    <span className="font-medium text-green-700">
+                    <span className="text-muted">Rätt svar: </span>
+                    <span className="font-medium text-success">
                       {correctOption.text}
                     </span>
                   </p>

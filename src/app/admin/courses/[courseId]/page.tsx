@@ -26,54 +26,58 @@ export default async function CourseDashboard({
     ]);
 
   const stats = [
-    { label: "Frågor", value: questionCount },
-    { label: "Enkäter", value: surveyCount },
-    { label: "Svar", value: responseCount },
-    { label: "Elever", value: studentCount },
+    { label: "Frågor", value: questionCount, color: "text-primary" },
+    { label: "Enkäter", value: surveyCount, color: "text-primary" },
+    { label: "Svar", value: responseCount, color: "text-accent" },
+    { label: "Elever", value: studentCount, color: "text-accent" },
   ];
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-2">Dashboard</h1>
+    <div className="animate-fade-in">
+      <h1 className="text-2xl font-bold mb-2 tracking-tight">Dashboard</h1>
       {course && (
-        <div className="mb-6 flex items-center gap-3">
-          <span className="text-sm text-gray-700">Kurskod:</span>
-          <span className="bg-gray-100 px-3 py-1 rounded font-mono text-lg font-bold tracking-wider">
+        <div className="mb-8 flex items-center gap-3">
+          <span className="text-sm text-muted">Kurskod:</span>
+          <span className="bg-accent-light text-accent-hover px-3 py-1 rounded-lg font-mono text-sm font-bold tracking-wider">
             {course.code}
           </span>
-          <span className="text-xs text-gray-600">Dela med eleverna för inloggning</span>
+          <span className="text-xs text-muted-light">Dela med eleverna</span>
         </div>
       )}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {stats.map((s) => (
-          <div key={s.label} className="bg-white rounded-lg shadow p-6">
-            <div className="text-3xl font-bold">{s.value}</div>
-            <div className="text-gray-700 text-sm mt-1">{s.label}</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        {stats.map((s, i) => (
+          <div
+            key={s.label}
+            className="card p-5 animate-fade-in"
+            style={{ animationDelay: `${i * 75}ms` }}
+          >
+            <div className={`text-3xl font-bold ${s.color}`}>{s.value}</div>
+            <div className="text-muted text-sm mt-1">{s.label}</div>
           </div>
         ))}
       </div>
 
-      <h2 className="text-lg font-semibold mb-3">Senaste enkäter</h2>
+      <h2 className="text-lg font-semibold mb-3 tracking-tight">Senaste enkäter</h2>
       {recentSurveys.length === 0 ? (
-        <p className="text-gray-700">Inga enkäter skapade ännu.</p>
+        <p className="text-muted">Inga enkäter skapade ännu.</p>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <div className="card overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left">
-                <th className="p-3">Titel</th>
-                <th className="p-3">Frågor</th>
-                <th className="p-3">Svar</th>
-                <th className="p-3">Skapad</th>
+              <tr className="border-b border-border-light text-left">
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Titel</th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Frågor</th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Svar</th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Skapad</th>
               </tr>
             </thead>
             <tbody>
               {recentSurveys.map((s) => (
-                <tr key={s.id} className="border-b last:border-0 hover:bg-gray-50">
-                  <td className="p-3">{s.title}</td>
-                  <td className="p-3">{s._count.questions}</td>
-                  <td className="p-3">{s._count.responses}</td>
-                  <td className="p-3">
+                <tr key={s.id} className="border-b border-border-light last:border-0 hover:bg-surface-muted/50 transition-colors">
+                  <td className="p-4 font-medium">{s.title}</td>
+                  <td className="p-4 text-muted">{s._count.questions}</td>
+                  <td className="p-4 text-muted">{s._count.responses}</td>
+                  <td className="p-4 text-muted">
                     {new Date(s.createdAt).toLocaleDateString("sv-SE")}
                   </td>
                 </tr>

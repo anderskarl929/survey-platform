@@ -229,36 +229,30 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Frågebank</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Frågebank</h1>
         <div className="flex gap-2">
-          <button
-            onClick={() => setShowAdd(!showAdd)}
-            className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
-          >
+          <button onClick={() => setShowAdd(!showAdd)} className="btn-primary">
             Lägg till fråga
           </button>
-          <button
-            onClick={() => setShowImport(!showImport)}
-            className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700"
-          >
+          <button onClick={() => setShowImport(!showImport)} className="btn-accent">
             Importera CSV
           </button>
         </div>
       </div>
 
       {showImport && (
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <h3 className="font-semibold mb-2">Importera frågor från CSV</h3>
-          <p className="text-sm text-gray-700 mb-3">
+        <div className="card p-5 mb-6 animate-scale-in">
+          <h3 className="font-semibold mb-2 tracking-tight">Importera frågor från CSV</h3>
+          <p className="text-sm text-muted mb-3">
             Format: topic, type, text, option1, option2, option3, option4
           </p>
           {needsCourseSelect && (
             <select
               value={importCourseId}
               onChange={(e) => setImportCourseId(e.target.value)}
-              className="border rounded p-2 text-sm mb-3 block"
+              className="input-field mb-3 w-auto"
             >
               <option value="">Välj kurs...</option>
               {courses.map((c) => (
@@ -271,14 +265,14 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
             onChange={(e) => setCsvContent(e.target.value)}
             rows={6}
             placeholder={"topic,type,text,option1,option2,option3,option4,correctAnswer\nMatematik,MULTIPLE_CHOICE,Vad är 2+2?,3,4,5,6,4"}
-            className="w-full border rounded p-2 text-sm font-mono mb-3"
+            className="input-field font-mono mb-3"
           />
-          <p className="text-xs text-gray-500 mb-2">Eller ladda upp en CSV-fil:</p>
+          <p className="text-xs text-muted mb-2">Eller ladda upp en CSV-fil:</p>
           <input type="file" accept=".csv" onChange={handleFileUpload} className="mb-3 block text-sm" />
           <button
             onClick={handleImport}
             disabled={importing || !csvContent.trim()}
-            className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 disabled:opacity-50"
+            className="btn-accent"
           >
             {importing ? "Importerar..." : "Importera"}
           </button>
@@ -286,13 +280,13 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
       )}
 
       {showAdd && (
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <h3 className="font-semibold mb-3">Ny fråga</h3>
+        <div className="card p-5 mb-6 animate-scale-in">
+          <h3 className="font-semibold mb-3 tracking-tight">Ny fråga</h3>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <select
               value={newQ.topicId}
               onChange={(e) => setNewQ({ ...newQ, topicId: e.target.value })}
-              className="border rounded p-2 text-sm"
+              className="input-field"
             >
               <option value="">Välj ämne...</option>
               {topics.map((t) => (
@@ -304,9 +298,9 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
                 value={newTopicName}
                 onChange={(e) => setNewTopicName(e.target.value)}
                 placeholder="Nytt ämne..."
-                className="border rounded p-2 text-sm flex-1"
+                className="input-field flex-1"
               />
-              <button onClick={handleAddTopic} className="bg-gray-200 px-3 rounded text-sm hover:bg-gray-300">
+              <button onClick={handleAddTopic} className="btn-secondary px-3">
                 +
               </button>
             </div>
@@ -314,7 +308,7 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
           <select
             value={newQ.type}
             onChange={(e) => setNewQ({ ...newQ, type: e.target.value })}
-            className="border rounded p-2 text-sm mb-3 block"
+            className="input-field mb-3 w-auto"
           >
             <option value="MULTIPLE_CHOICE">Flerval</option>
             <option value="FREE_TEXT">Fritext</option>
@@ -323,12 +317,12 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
             value={newQ.text}
             onChange={(e) => setNewQ({ ...newQ, text: e.target.value })}
             placeholder="Frågetext..."
-            className="w-full border rounded p-2 text-sm mb-3"
+            className="input-field mb-3"
           />
           {newQ.type === "MULTIPLE_CHOICE" && (
             <div className="mb-3">
               {showCorrectAnswers && (
-                <label className="block text-xs text-gray-600 mb-1">Markera rätt svar med radioknappen</label>
+                <label className="block text-xs text-muted mb-1">Markera rätt svar med radioknappen</label>
               )}
               {newQ.options.map((opt, i) => (
                 <div key={i} className="flex items-center gap-2 mb-1">
@@ -339,6 +333,7 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
                       checked={newQ.correctOptionIndex === i}
                       onChange={() => setNewQ({ ...newQ, correctOptionIndex: i })}
                       title="Rätt svar"
+                      className="accent-primary"
                     />
                   )}
                   <input
@@ -349,22 +344,19 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
                       setNewQ({ ...newQ, options: opts });
                     }}
                     placeholder={`Alternativ ${i + 1}`}
-                    className="border rounded p-2 text-sm flex-1"
+                    className="input-field flex-1"
                   />
                 </div>
               ))}
               <button
                 onClick={() => setNewQ({ ...newQ, options: [...newQ.options, ""] })}
-                className="text-blue-600 text-sm mt-1"
+                className="text-primary text-sm mt-1 font-medium hover:underline"
               >
                 + Lägg till alternativ
               </button>
             </div>
           )}
-          <button
-            onClick={handleAddQuestion}
-            className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
-          >
+          <button onClick={handleAddQuestion} className="btn-primary">
             Spara fråga
           </button>
         </div>
@@ -374,7 +366,7 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
         <select
           value={filterTopic}
           onChange={(e) => setFilterTopic(e.target.value)}
-          className="border rounded p-2 text-sm"
+          className="input-field w-auto"
         >
           <option value="">Alla ämnen</option>
           {topics.map((t) => (
@@ -386,24 +378,24 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
       </div>
 
       {loading ? (
-        <div className="text-gray-500">Laddar...</div>
+        <div className="text-muted">Laddar...</div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <div className="card overflow-x-auto">
           {selectedIds.size > 0 && (
-            <div className="flex items-center gap-3 p-3 bg-red-50 border-b border-red-200">
-              <span className="text-sm text-red-700 font-medium">
+            <div className="flex items-center gap-3 p-3 bg-error-light/50 border-b border-error-light">
+              <span className="text-sm text-error font-semibold">
                 {selectedIds.size} frågor markerade
               </span>
               <button
                 onClick={handleBulkDelete}
                 disabled={bulkDeleting}
-                className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700 disabled:opacity-50"
+                className="bg-error text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-error/90 disabled:opacity-50 transition-colors"
               >
                 {bulkDeleting ? "Raderar..." : "Radera markerade"}
               </button>
               <button
                 onClick={() => setSelectedIds(new Set())}
-                className="text-sm text-gray-600 hover:text-gray-800"
+                className="text-sm text-muted hover:text-foreground"
               >
                 Avmarkera alla
               </button>
@@ -411,58 +403,60 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
           )}
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b text-left">
-                <th className="p-3 w-10">
+              <tr className="border-b border-border-light text-left">
+                <th className="p-4 w-10">
                   <input
                     type="checkbox"
                     checked={questions.length > 0 && selectedIds.size === questions.length}
                     onChange={toggleSelectAll}
                     title="Markera alla"
+                    className="accent-primary"
                   />
                 </th>
-                <th className="p-3">Fråga</th>
-                <th className="p-3">Typ</th>
-                <th className="p-3">Ämne</th>
-                <th className="p-3">Alternativ</th>
-                <th className="p-3"></th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Fråga</th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Typ</th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Ämne</th>
+                <th className="p-4 font-semibold text-muted text-xs uppercase tracking-wider">Alternativ</th>
+                <th className="p-4"></th>
               </tr>
             </thead>
             <tbody>
               {questions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-3 text-gray-700">
+                  <td colSpan={6} className="p-4 text-muted">
                     Inga frågor. Importera via CSV eller lägg till manuellt.
                   </td>
                 </tr>
               ) : (
                 questions.map((q) => (
-                  <tr key={q.id} className={`border-b last:border-0 hover:bg-gray-50 ${selectedIds.has(q.id) ? "bg-blue-50" : ""}`}>
-                    <td className="p-3">
+                  <tr key={q.id} className={`border-b border-border-light last:border-0 hover:bg-surface-muted/50 transition-colors ${selectedIds.has(q.id) ? "bg-primary-light/50" : ""}`}>
+                    <td className="p-4">
                       <input
                         type="checkbox"
                         checked={selectedIds.has(q.id)}
                         onChange={() => toggleSelected(q.id)}
+                        className="accent-primary"
                       />
                     </td>
-                    <td className="p-3">{q.text}</td>
-                    <td className="p-3">
+                    <td className="p-4">{q.text}</td>
+                    <td className="p-4">
                       <span
-                        className={`px-2 py-0.5 rounded text-xs ${
+                        className={`badge ${
                           q.type === "MULTIPLE_CHOICE"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-purple-100 text-purple-700"
+                            ? "bg-primary-light text-primary"
+                            : "bg-accent-light text-accent"
                         }`}
                       >
                         {q.type === "MULTIPLE_CHOICE" ? "Flerval" : "Fritext"}
                       </span>
                     </td>
-                    <td className="p-3">{q.topic.name}</td>
-                    <td className="p-3 text-gray-700">
+                    <td className="p-4 text-muted">{q.topic.name}</td>
+                    <td className="p-4 text-muted">
                       {q.options.length > 0
                         ? showCorrectAnswers
                           ? q.options
                               .map((o, i) => (
-                                <span key={o.id ?? i} className={o.isCorrect ? "font-bold text-green-700" : ""}>
+                                <span key={o.id ?? i} className={o.isCorrect ? "font-bold text-success" : ""}>
                                   {o.text}
                                   {o.isCorrect ? " \u2713" : ""}
                                 </span>
@@ -473,13 +467,13 @@ export default function QuestionsManager({ apiBase, showCorrectAnswers = false }
                                 [] as React.ReactNode[]
                               )
                           : q.options.map((o) => o.text).join(", ")
-                        : "—"}
+                        : "\u2014"}
                     </td>
-                    <td className="p-3">
+                    <td className="p-4">
                       <button
                         onClick={() => handleDeleteQuestion(q.id)}
                         disabled={deletingId === q.id}
-                        className="text-red-600 hover:text-red-800 text-sm disabled:opacity-50"
+                        className="text-error hover:underline text-sm font-medium disabled:opacity-50"
                       >
                         {deletingId === q.id ? "Raderar..." : "Radera"}
                       </button>

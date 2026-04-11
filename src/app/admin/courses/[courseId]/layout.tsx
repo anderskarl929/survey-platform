@@ -19,8 +19,8 @@ export default async function CourseLayout({
   if (!course) notFound();
 
   return (
-    <div className="-m-4 md:-m-8 flex flex-col md:flex-row min-h-screen bg-gray-100">
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded">
+    <div className="-m-4 md:-m-8 flex flex-col md:flex-row min-h-screen bg-background">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-primary focus:text-white focus:px-4 focus:py-2 focus:rounded">
         Hoppa till innehåll
       </a>
       <CourseSidebar courseId={course.id} courseName={course.name} />
