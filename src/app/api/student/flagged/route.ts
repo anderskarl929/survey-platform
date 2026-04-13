@@ -40,9 +40,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check the question exists
-    const question = await prisma.question.findUnique({
-      where: { id: questionId },
+    // Check the question exists and belongs to the student's course
+    const question = await prisma.question.findFirst({
+      where: {
+        id: questionId,
+        topic: { courseId: session.courseId },
+      },
     });
     if (!question) {
       return NextResponse.json(
