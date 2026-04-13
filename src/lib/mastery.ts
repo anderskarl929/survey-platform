@@ -35,3 +35,29 @@ export function calculateMastery(
 
   return { masteredIds, remainingIds };
 }
+
+const SPACING_DAYS = 2;
+
+export function getSpacedReviewIds(
+  questionIds: number[],
+  responses: ResponseRecord[]
+): number[] {
+  const now = new Date();
+  return questionIds.filter((id) => {
+    if (isQuestionMastered(id, responses)) return false;
+
+    const answers = responses
+      .filter((r) => r.questionId === id)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    if (answers.length === 0) return false;
+
+    const lastAnswer = answers[0];
+    // Only surface questions where the last attempt was wrong or unsure
+    if (lastAnswer.isCorrect === true) return false;
+
+    const daysSince =
+      (now.getTime() - lastAnswer.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+    return daysSince >= SPACING_DAYS;
+  });
+}

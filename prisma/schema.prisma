@@ -97,7 +97,7 @@ model Response {
   student   Student  @relation(fields: [studentId], references: [id])
   answers   Answer[]
 
-  @@unique([surveyId, studentId])
+  @@index([surveyId, studentId])
   @@index([surveyId])
   @@index([studentId])
 }

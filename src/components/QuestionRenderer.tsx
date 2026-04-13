@@ -14,6 +14,7 @@ interface QuestionRendererProps {
   answers: Record<number, string>;
   onAnswer: (questionId: number, value: string) => void;
   flaggedIds?: Set<number>;
+  startIndex?: number;
 }
 
 export default function QuestionRenderer({
@@ -21,6 +22,7 @@ export default function QuestionRenderer({
   answers,
   onAnswer,
   flaggedIds,
+  startIndex = 0,
 }: QuestionRendererProps) {
   return (
     <>
@@ -28,7 +30,7 @@ export default function QuestionRenderer({
         <div key={q.id} className="card p-6 mb-4">
           <div className="flex items-start justify-between gap-2 mb-3">
             <label className="block font-semibold tracking-tight">
-              {i + 1}. {q.text}
+              {startIndex + i + 1}. {q.text}
             </label>
             {flaggedIds !== undefined && (
               <FlagButton
@@ -57,9 +59,27 @@ export default function QuestionRenderer({
                     onChange={() => onAnswer(q.id, opt)}
                     className="accent-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   />
-                  <span className="text-sm">{opt}</span>
+                  <span className="text-base">{opt}</span>
                 </label>
               ))}
+              <div className="border-t border-border-light my-1" />
+              <label
+                className={`flex items-center gap-3 cursor-pointer p-3 border border-dashed rounded-xl transition-all duration-150 ${
+                  answers[q.id] === "__UNSURE__"
+                    ? "border-accent bg-accent-light shadow-sm"
+                    : "border-border-light hover:border-border hover:bg-surface-muted/50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name={`q-${q.id}`}
+                  value="__UNSURE__"
+                  checked={answers[q.id] === "__UNSURE__"}
+                  onChange={() => onAnswer(q.id, "__UNSURE__")}
+                  className="accent-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                />
+                <span className="text-base text-muted">Jag är inte säker</span>
+              </label>
             </div>
           ) : (
             <textarea

@@ -63,14 +63,18 @@ export default function QuizResultsDisplay({
 
       {quizResults && (
         <div className="space-y-3 mb-6">
-          {quizResults.map((r, i) => (
+          {quizResults.map((r, i) => {
+            const isUnsure = r.yourAnswer === "__UNSURE__";
+            return (
             <div
               key={r.questionId}
               className={`card p-4 border-l-4 ${
                 r.isCorrect === true
                   ? "border-l-success bg-success-light/30"
                   : r.isCorrect === false
-                  ? "border-l-error bg-error-light/30"
+                  ? "border-l-warning bg-warning-light/20"
+                  : isUnsure
+                  ? "border-l-accent bg-accent-light/30"
                   : ""
               }`}
             >
@@ -78,21 +82,27 @@ export default function QuizResultsDisplay({
                 <span className="font-semibold text-sm">{i + 1}.</span>
                 <div className="flex-1">
                   <p className="font-medium text-sm mb-1">{r.questionText}</p>
-                  <p className="text-sm">
-                    Ditt svar:{" "}
-                    <span
-                      className={
-                        r.isCorrect === false
-                          ? "text-error line-through"
-                          : "text-success font-semibold"
-                      }
-                    >
-                      {r.yourAnswer}
-                    </span>
-                  </p>
-                  {r.isCorrect === false && r.correctAnswer && (
+                  {isUnsure ? (
+                    <p className="text-sm text-accent">
+                      Du markerade att du var osäker - bra att du var ärlig!
+                    </p>
+                  ) : (
+                    <p className="text-sm">
+                      Ditt svar:{" "}
+                      <span
+                        className={
+                          r.isCorrect === false
+                            ? "text-muted"
+                            : "text-success font-semibold"
+                        }
+                      >
+                        {r.yourAnswer}
+                      </span>
+                    </p>
+                  )}
+                  {(r.isCorrect === false || isUnsure) && r.correctAnswer && (
                     <p className="text-sm text-success">
-                      Rätt svar: <span className="font-semibold">{r.correctAnswer}</span>
+                      Det rätta svaret: <span className="font-semibold">{r.correctAnswer}</span>
                     </p>
                   )}
                   {flaggedIds !== undefined && (
@@ -106,11 +116,12 @@ export default function QuizResultsDisplay({
                   )}
                 </div>
                 <span className="text-lg">
-                  {r.isCorrect === true ? "\u2705" : r.isCorrect === false ? "\u274C" : ""}
+                  {r.isCorrect === true ? "\u2705" : ""}
                 </span>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import QuestionRenderer from "@/components/QuestionRenderer";
 import QuizResultsDisplay from "@/components/QuizResultsDisplay";
-import ProgressBar from "@/components/ProgressBar";
+
 import LockOverlay from "@/components/LockOverlay";
 
 interface SurveyData {
@@ -52,6 +52,7 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
   const [flaggedIds, setFlaggedIds] = useState<Set<number>>(new Set());
   const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [draftLoaded, setDraftLoaded] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load draft and flagged questions on mount
@@ -184,6 +185,16 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
     (q) => answers[q.id]?.trim()
   ).length;
   const totalQuestions = survey.questions.length;
+  const isLastQuestion = currentStep === totalQuestions - 1;
+  const currentQuestion = survey.questions[currentStep];
+
+  function goPrev() {
+    setCurrentStep((s) => Math.max(0, s - 1));
+  }
+
+  function goNext() {
+    setCurrentStep((s) => Math.min(totalQuestions - 1, s + 1));
+  }
 
   return (
     <form onSubmit={handleSubmit}>
@@ -206,15 +217,10 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
       </div>
 
       <div className="card p-6 mb-6">
-        <ProgressBar answered={answeredCount} total={totalQuestions} />
-        <div className="flex items-center justify-between mt-3">
-          <div>
-            {error && (
-              <p className="text-error text-sm font-medium" role="alert">
-                {error}
-              </p>
-            )}
-          </div>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-semibold text-muted">
+            Fråga {currentStep + 1} av {totalQuestions}
+          </span>
           <div className="text-xs text-muted-light">
             {draftLoaded && draftStatus === "idle" && "Utkast laddat"}
             {draftStatus === "saving" && "Sparar utkast…"}
@@ -224,31 +230,58 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
             )}
           </div>
         </div>
+        {error && (
+          <p className="text-error text-sm font-medium mt-3" role="alert">
+            {error}
+          </p>
+        )}
       </div>
 
-      <QuestionRenderer
-        questions={survey.questions}
-        answers={answers}
-        onAnswer={setAnswer}
-        flaggedIds={flaggedIds}
-      />
+      {currentQuestion && (
+        <QuestionRenderer
+          questions={[currentQuestion]}
+          answers={answers}
+          onAnswer={setAnswer}
+          flaggedIds={flaggedIds}
+          startIndex={currentStep}
+        />
+      )}
 
       <div className="flex gap-3">
         <button
           type="button"
-          onClick={handleSaveDraft}
-          disabled={saving || submitting}
-          className="btn-secondary flex-1 py-3"
+          onClick={goPrev}
+          disabled={currentStep === 0 || submitting}
+          className="btn-secondary py-3 px-5"
         >
-          {saving ? "Sparar..." : draftStatus === "saved" && !saving ? "Sparat — du kan fortsätta senare" : "Spara"}
+          Föregående
         </button>
         <button
-          type="submit"
-          disabled={submitting || answeredCount < totalQuestions}
-          className="btn-primary flex-1 py-3"
+          type="button"
+          onClick={handleSaveDraft}
+          disabled={saving || submitting}
+          className="btn-secondary py-3 px-5"
         >
-          {submitting ? "Skickar..." : "Skicka svar"}
+          {saving ? "Sparar..." : draftStatus === "saved" && !saving ? "Sparat" : "Spara"}
         </button>
+        {isLastQuestion ? (
+          <button
+            type="submit"
+            disabled={submitting}
+            className="btn-primary flex-1 py-3"
+          >
+            {submitting ? "Skickar..." : "Skicka svar"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={goNext}
+            disabled={submitting}
+            className="btn-primary flex-1 py-3"
+          >
+            Nästa
+          </button>
+        )}
       </div>
     </form>
   );

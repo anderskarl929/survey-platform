@@ -77,20 +77,6 @@ export async function PUT(
       return NextResponse.json({ error: "Ingen åtkomst" }, { status: 403 });
     }
 
-    // Check if already submitted
-    const existing = await prisma.response.findUnique({
-      where: {
-        surveyId_studentId: { surveyId, studentId: session.studentId },
-      },
-    });
-
-    if (existing) {
-      return NextResponse.json(
-        { error: "Du har redan skickat in svar på denna enkät." },
-        { status: 409 }
-      );
-    }
-
     await prisma.draftResponse.upsert({
       where: {
         surveyId_studentId: { surveyId, studentId: session.studentId },

@@ -51,9 +51,12 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
   const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isQuiz = survey.mode === "QUIZ";
+  const totalQuestions = survey.questions.length;
+  const isInfoStep = currentStep === totalQuestions;
 
   // Try to load draft and flagged questions — works if student is logged in
   useEffect(() => {
@@ -201,7 +204,15 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
   }
 
   const answeredCount = survey.questions.filter((q) => answers[q.id]?.trim()).length;
-  const totalQuestions = survey.questions.length;
+  const currentQuestion = isInfoStep ? null : survey.questions[currentStep];
+
+  function goPrev() {
+    setCurrentStep((s) => Math.max(0, s - 1));
+  }
+
+  function goNext() {
+    setCurrentStep((s) => Math.min(totalQuestions, s + 1));
+  }
 
   return (
     <form onSubmit={handleSubmit}>
@@ -224,40 +235,12 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
       </div>
 
       <div className="card p-6 mb-6">
-        <div className="mb-6">
-          <ProgressBar answered={answeredCount} total={totalQuestions} />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="student-number" className="block font-semibold mb-2 text-sm">Ditt elevnummer</label>
-            <input
-              id="student-number"
-              type="number"
-              min="1"
-              value={studentNumber}
-              onChange={(e) => setStudentNumber(e.target.value)}
-              placeholder="T.ex. 7"
-              className="input-field"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="course-code" className="block font-semibold mb-2 text-sm">Kurskod</label>
-            <input
-              id="course-code"
-              type="text"
-              value={courseCode}
-              onChange={(e) => setCourseCode(e.target.value.toUpperCase())}
-              placeholder="T.ex. MAT7A"
-              className="input-field font-mono uppercase tracking-wider"
-              required
-            />
-          </div>
-        </div>
-        <div className="flex items-center justify-between mt-2">
-          <div>
-            {error && <p className="text-error text-sm mt-2 font-medium" role="alert">{error}</p>}
-          </div>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-semibold text-muted">
+            {isInfoStep
+              ? "Dina uppgifter"
+              : `Fråga ${currentStep + 1} av ${totalQuestions}`}
+          </span>
           {isLoggedIn && (
             <div className="text-xs text-muted-light">
               {draftLoaded && draftStatus === "idle" && "Utkast laddat"}
@@ -269,33 +252,89 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
             </div>
           )}
         </div>
+        <ProgressBar answered={answeredCount} total={totalQuestions} />
       </div>
 
-      <QuestionRenderer
-        questions={survey.questions}
-        answers={answers}
-        onAnswer={setAnswer}
-        flaggedIds={flaggedIds}
-      />
+      {currentQuestion && (
+        <QuestionRenderer
+          questions={[currentQuestion]}
+          answers={answers}
+          onAnswer={setAnswer}
+          flaggedIds={flaggedIds}
+          startIndex={currentStep}
+        />
+      )}
+
+      {isInfoStep && (
+        <div className="card p-6 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="student-number" className="block font-semibold mb-2 text-sm">Ditt elevnummer</label>
+              <input
+                id="student-number"
+                type="number"
+                min="1"
+                value={studentNumber}
+                onChange={(e) => setStudentNumber(e.target.value)}
+                placeholder="T.ex. 7"
+                className="input-field"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="course-code" className="block font-semibold mb-2 text-sm">Kurskod</label>
+              <input
+                id="course-code"
+                type="text"
+                value={courseCode}
+                onChange={(e) => setCourseCode(e.target.value.toUpperCase())}
+                placeholder="T.ex. MAT7A"
+                className="input-field font-mono uppercase tracking-wider"
+                required
+              />
+            </div>
+          </div>
+          {error && <p className="text-error text-sm mt-3 font-medium" role="alert">{error}</p>}
+        </div>
+      )}
 
       <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={goPrev}
+          disabled={currentStep === 0 || submitting}
+          className="btn-secondary py-3 px-5"
+        >
+          Föregående
+        </button>
         {isLoggedIn && (
           <button
             type="button"
             onClick={handleSaveDraft}
             disabled={saving || submitting}
-            className="btn-secondary flex-1 py-3"
+            className="btn-secondary py-3 px-5"
           >
-            {saving ? "Sparar..." : draftStatus === "saved" && !saving ? "Sparat — du kan fortsätta senare" : "Spara"}
+            {saving ? "Sparar..." : draftStatus === "saved" && !saving ? "Sparat" : "Spara"}
           </button>
         )}
-        <button
-          type="submit"
-          disabled={submitting}
-          className={`btn-primary ${isLoggedIn ? "flex-1" : "w-full"} py-3`}
-        >
-          {submitting ? "Skickar..." : "Skicka svar"}
-        </button>
+        {isInfoStep ? (
+          <button
+            type="submit"
+            disabled={submitting}
+            className="btn-primary flex-1 py-3"
+          >
+            {submitting ? "Skickar..." : "Skicka svar"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={goNext}
+            disabled={submitting}
+            className="btn-primary flex-1 py-3"
+          >
+            {currentStep === totalQuestions - 1 ? "Till slutsteget" : "Nästa"}
+          </button>
+        )}
       </div>
     </form>
   );

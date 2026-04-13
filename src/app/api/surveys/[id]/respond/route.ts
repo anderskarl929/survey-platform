@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { respondSchema } from "@/lib/validators";
 import { handleApiError } from "@/lib/api-helpers";
 import { getStudentSession } from "@/lib/student-session";
-import { Prisma } from "@prisma/client";
 
 export async function POST(
   request: NextRequest,
@@ -69,37 +68,23 @@ export async function POST(
         (sq) => sq.questionId === a.questionId
       );
       if (sq && sq.question.type === "MULTIPLE_CHOICE") {
-        const correctOption = sq.question.options.find((o) => o.isCorrect);
-        isCorrect = correctOption ? a.value === correctOption.text : null;
+        if (a.value === "__UNSURE__") {
+          isCorrect = null; // Metacognitive "I'm not sure" - neither correct nor incorrect
+        } else {
+          const correctOption = sq.question.options.find((o) => o.isCorrect);
+          isCorrect = correctOption ? a.value === correctOption.text : null;
+        }
       }
       return { questionId: a.questionId, value: a.value, isCorrect };
     });
 
-    // Use try/catch with unique constraint to prevent race condition
-    let response;
-    try {
-      response = await prisma.response.create({
-        data: {
-          surveyId,
-          studentId: session.studentId,
-          answers: { create: answerData },
-        },
-      });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
-        const target = (error.meta?.target as string[]) ?? [];
-        if (target.includes("surveyId") || target.includes("studentId")) {
-          return NextResponse.json(
-            { error: "Du har redan svarat på denna enkät." },
-            { status: 409 }
-          );
-        }
-      }
-      throw error;
-    }
+    const response = await prisma.response.create({
+      data: {
+        surveyId,
+        studentId: session.studentId,
+        answers: { create: answerData },
+      },
+    });
 
     // Delete any draft for this student+survey
     await prisma.draftResponse.deleteMany({

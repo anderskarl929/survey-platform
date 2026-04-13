@@ -66,9 +66,17 @@
     background: var(--background);
     color: var(--foreground);
     font-family: var(--font-bricolage), system-ui, sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  input[type="radio"],
+  input[type="checkbox"] {
+    min-width: 1.5rem;
+    min-height: 1.5rem;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -130,9 +138,9 @@
   .btn-primary {
     background: var(--primary);
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 0.625rem 1.25rem;
     border-radius: 0.5rem;
-    font-size: 0.875rem;
+    font-size: 1rem;
     font-weight: 600;
     transition: background 0.15s ease, transform 0.1s ease;
   }
@@ -153,9 +161,9 @@
   .btn-secondary {
     background: var(--surface-muted);
     color: var(--foreground);
-    padding: 0.5rem 1rem;
+    padding: 0.625rem 1.25rem;
     border-radius: 0.5rem;
-    font-size: 0.875rem;
+    font-size: 1rem;
     font-weight: 500;
     transition: background 0.15s ease;
   }
@@ -167,9 +175,9 @@
   .btn-accent {
     background: var(--accent);
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 0.625rem 1.25rem;
     border-radius: 0.5rem;
-    font-size: 0.875rem;
+    font-size: 1rem;
     font-weight: 600;
     transition: background 0.15s ease, transform 0.1s ease;
   }
@@ -187,7 +195,7 @@
     border: 1px solid var(--border);
     border-radius: 0.5rem;
     padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
+    font-size: 1rem;
     background: var(--surface);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
@@ -201,7 +209,7 @@
   .badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.125rem 0.5rem;
+    padding: 0.25rem 0.625rem;
     border-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 600;

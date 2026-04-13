@@ -81,6 +81,7 @@ export default async function ResultDetailPage({
           );
           const isCorrect = answer.isCorrect === true;
           const isWrong = answer.isCorrect === false;
+          const isUnsure = answer.value === "__UNSURE__";
           const isFreeText = answer.question.type === "FREE_TEXT";
 
           return (
@@ -90,8 +91,10 @@ export default async function ResultDetailPage({
                 isCorrect
                   ? "border-l-success"
                   : isWrong
-                    ? "border-l-error"
-                    : "border-l-border"
+                    ? "border-l-warning"
+                    : isUnsure
+                      ? "border-l-accent"
+                      : "border-l-border"
               }`}
             >
               <p className="font-medium mb-2">
@@ -99,23 +102,29 @@ export default async function ResultDetailPage({
               </p>
 
               <div className="text-sm space-y-1">
-                <p>
-                  <span className="text-muted">Ditt svar: </span>
-                  <span
-                    className={`font-medium ${
-                      isCorrect
-                        ? "text-success"
-                        : isWrong
-                          ? "text-error"
-                          : ""
-                    }`}
-                  >
-                    {answer.value}
-                  </span>
-                </p>
-                {isWrong && correctOption && (
+                {isUnsure ? (
+                  <p className="text-accent">
+                    Du markerade att du var osäker - bra att du var ärlig!
+                  </p>
+                ) : (
                   <p>
-                    <span className="text-muted">Rätt svar: </span>
+                    <span className="text-muted">Ditt svar: </span>
+                    <span
+                      className={`font-medium ${
+                        isCorrect
+                          ? "text-success"
+                          : isWrong
+                            ? "text-muted"
+                            : ""
+                      }`}
+                    >
+                      {answer.value}
+                    </span>
+                  </p>
+                )}
+                {(isWrong || isUnsure) && correctOption && (
+                  <p>
+                    <span className="text-muted">Det rätta svaret: </span>
                     <span className="font-medium text-success">
                       {correctOption.text}
                     </span>

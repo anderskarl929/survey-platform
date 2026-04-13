@@ -1,7 +1,7 @@
 import { getStudentSession } from "@/lib/student-session";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { calculateMastery, ResponseRecord } from "@/lib/mastery";
+import { calculateMastery, getSpacedReviewIds, ResponseRecord } from "@/lib/mastery";
 import Link from "next/link";
 import FlaggedQuestionsList from "@/components/FlaggedQuestionsList";
 
@@ -66,6 +66,25 @@ export default async function StudentDashboard() {
       fq.question.options.find((o) => o.isCorrect)?.text ?? null,
   }));
 
+  // Spaced review: find questions ready for review (wrong/unsure 2+ days ago, not mastered)
+  const allQuestionIds = surveys.flatMap((s) => s.questions.map((sq) => sq.questionId));
+  const spacedReviewIds = getSpacedReviewIds(allQuestionIds, allRecords);
+
+  // Map review question IDs to their survey for linking
+  const reviewBySurvey = new Map<number, { surveyId: number; surveyTitle: string; count: number }>();
+  for (const qId of spacedReviewIds) {
+    const survey = surveys.find((s) => s.questions.some((sq) => sq.questionId === qId));
+    if (survey) {
+      const existing = reviewBySurvey.get(survey.id);
+      if (existing) {
+        existing.count++;
+      } else {
+        reviewBySurvey.set(survey.id, { surveyId: survey.id, surveyTitle: survey.title, count: 1 });
+      }
+    }
+  }
+  const reviewSurveys = Array.from(reviewBySurvey.values());
+
   return (
     <div className="animate-fade-in">
       <div className="mb-6">
@@ -89,6 +108,38 @@ export default async function StudentDashboard() {
             </span>
           </h3>
           <FlaggedQuestionsList questions={flaggedData} />
+        </div>
+      )}
+
+      {reviewSurveys.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 tracking-tight">
+            Frågor att repetera
+            <span className="text-sm font-normal text-muted">
+              ({spacedReviewIds.length})
+            </span>
+          </h3>
+          <p className="text-sm text-muted mb-3">
+            Dessa frågor är redo att repeteras - forskning visar att spacing förbättrar minnet.
+          </p>
+          <div className="space-y-2">
+            {reviewSurveys.map((rs) => (
+              <div key={rs.surveyId} className="card p-4 flex items-center justify-between">
+                <div>
+                  <span className="font-medium">{rs.surveyTitle}</span>
+                  <span className="text-sm text-muted ml-2">
+                    {rs.count} {rs.count === 1 ? "fråga" : "frågor"}
+                  </span>
+                </div>
+                <Link
+                  href={`/student/quiz/${rs.surveyId}`}
+                  className="btn-accent inline-block"
+                >
+                  Repetera
+                </Link>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
