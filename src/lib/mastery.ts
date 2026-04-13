@@ -40,9 +40,9 @@ const SPACING_DAYS = 2;
 
 export function getSpacedReviewIds(
   questionIds: number[],
-  responses: ResponseRecord[]
+  responses: ResponseRecord[],
+  now: Date = new Date()
 ): number[] {
-  const now = new Date();
   return questionIds.filter((id) => {
     if (isQuestionMastered(id, responses)) return false;
 
