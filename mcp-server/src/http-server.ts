@@ -1,15 +1,46 @@
 import "dotenv/config";
 import express from "express";
-import cors from "cors";
+import { timingSafeEqual } from "node:crypto";
 import { prisma } from "./prisma.js";
 
-const PORT = process.env.MCP_HTTP_PORT || 3002;
+const PORT = Number(process.env.MCP_HTTP_PORT) || 3002;
+const HOST = process.env.MCP_HTTP_HOST || "127.0.0.1";
+const TOKEN = process.env.MCP_HTTP_TOKEN;
+
+if (!TOKEN) {
+  console.error(
+    "FATAL: MCP_HTTP_TOKEN saknas i miljön. Sätt den i mcp-server/.env innan servern startas."
+  );
+  process.exit(1);
+}
+
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
 
-// Health check
+// Bearer-token authentication (skipped for /health)
+app.use((req, res, next) => {
+  if (req.path === "/health") return next();
+
+  const header = req.header("authorization") ?? "";
+  const match = header.match(/^Bearer (.+)$/);
+  if (!match) {
+    return res.status(401).json({ error: "Bearer-token krävs" });
+  }
+
+  const provided = Buffer.from(match[1]);
+  const expected = Buffer.from(TOKEN);
+  if (
+    provided.length !== expected.length ||
+    !timingSafeEqual(provided, expected)
+  ) {
+    return res.status(401).json({ error: "Ogiltig token" });
+  }
+
+  next();
+});
+
+// Health check (unauthenticated)
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", service: "survey-mcp-server" });
 });
@@ -107,7 +138,7 @@ app.get("/feedback/pending/:surveyId", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`MCP HTTP server running on http://localhost:${PORT}`);
-  console.log(`No API keys needed — feedback is generated via Claude Desktop`);
+app.listen(PORT, HOST, () => {
+  console.log(`MCP HTTP server running on http://${HOST}:${PORT}`);
+  console.log(`Bearer-token auth aktiv (MCP_HTTP_TOKEN)`);
 });
