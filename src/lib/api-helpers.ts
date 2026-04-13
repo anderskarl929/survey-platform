@@ -29,11 +29,9 @@ export function handleApiError(error: unknown) {
       );
     }
   }
-  const message = error instanceof Error ? error.message : String(error);
-  console.error("API Error:", message);
-  console.error("Stack:", error instanceof Error ? error.stack : "no stack");
+  console.error("API Error:", error);
   return NextResponse.json(
-    { error: `Internt serverfel: ${message}` },
+    { error: "Internt serverfel" },
     { status: 500 }
   );
 }
