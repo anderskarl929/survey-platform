@@ -51,7 +51,14 @@ export async function POST(request: Request) {
             topicId: topicMap.get(row.topic)!,
             options:
               row.type === "MULTIPLE_CHOICE" && row.options.length > 0
-                ? { create: row.options.map((o) => ({ text: o })) }
+                ? {
+                    create: row.options.map((o) => ({
+                      text: o,
+                      isCorrect: row.correctAnswer
+                        ? o === row.correctAnswer
+                        : false,
+                    })),
+                  }
                 : undefined,
           },
         });
