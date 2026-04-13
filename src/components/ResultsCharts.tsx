@@ -24,6 +24,7 @@ interface MCQuestion {
   optionCounts: Record<string, number>;
   correctAnswer?: string | null;
   studentAnswers?: StudentAnswer[];
+  answeredBy: number;
 }
 
 interface FTQuestion {
@@ -32,6 +33,7 @@ interface FTQuestion {
   type: "FREE_TEXT";
   textResponses: string[];
   studentAnswers?: StudentAnswer[];
+  answeredBy: number;
 }
 
 type ResultQuestion = MCQuestion | FTQuestion;
@@ -39,15 +41,20 @@ type ResultQuestion = MCQuestion | FTQuestion;
 export default function ResultsCharts({
   questions,
   isQuiz = false,
+  totalResponses,
 }: {
   questions: ResultQuestion[];
   isQuiz?: boolean;
+  totalResponses: number;
 }) {
   return (
     <div className="space-y-6">
       {questions.map((q) => (
         <div key={q.id} className="card p-6">
-          <h3 className="font-semibold mb-4 tracking-tight">{q.text}</h3>
+          <h3 className="font-semibold tracking-tight">{q.text}</h3>
+          <p className="text-xs text-muted-light mb-4">
+            Besvarad av {q.answeredBy}/{totalResponses} elever
+          </p>
 
           {q.type === "MULTIPLE_CHOICE" ? (
             <>

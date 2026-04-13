@@ -10,6 +10,7 @@ interface MCQuestion {
   text: string;
   type: "MULTIPLE_CHOICE";
   optionCounts: Record<string, number>;
+  answeredBy: number;
 }
 
 interface FTQuestion {
@@ -17,12 +18,13 @@ interface FTQuestion {
   text: string;
   type: "FREE_TEXT";
   textResponses: string[];
+  answeredBy: number;
 }
 
 type ResultQuestion = MCQuestion | FTQuestion;
 
 interface ResultsData {
-  survey: { id: number; title: string; responseCount: number };
+  survey: { id: number; title: string; responseCount: number; totalQuestions: number };
   questions: ResultQuestion[];
 }
 
@@ -74,7 +76,7 @@ export default function ResultsPage() {
           </a>
         )}
       </div>
-      <ResultsCharts questions={data.questions} />
+      <ResultsCharts questions={data.questions} totalResponses={data.survey.responseCount} />
     </div>
   );
 }

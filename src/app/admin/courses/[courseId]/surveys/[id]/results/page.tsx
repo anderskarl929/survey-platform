@@ -18,6 +18,7 @@ interface MCQuestion {
   optionCounts: Record<string, number>;
   correctAnswer?: string | null;
   studentAnswers?: StudentAnswer[];
+  answeredBy: number;
 }
 
 interface FTQuestion {
@@ -26,21 +27,23 @@ interface FTQuestion {
   type: "FREE_TEXT";
   textResponses: string[];
   studentAnswers?: StudentAnswer[];
+  answeredBy: number;
 }
 
 type ResultQuestion = MCQuestion | FTQuestion;
 
-interface StudentScore {
+interface StudentStat {
   studentNumber: number;
-  correct: number;
-  total: number;
-  percentage: number;
+  answered: number;
+  correct?: number;
+  total?: number;
+  percentage?: number;
 }
 
 interface ResultsData {
-  survey: { id: number; title: string; mode: string; responseCount: number };
+  survey: { id: number; title: string; mode: string; responseCount: number; totalQuestions: number };
   questions: ResultQuestion[];
-  studentScores?: StudentScore[] | null;
+  studentStats: StudentStat[];
 }
 
 export default function CourseResultsPage() {
@@ -97,36 +100,55 @@ export default function CourseResultsPage() {
         )}
       </div>
 
-      {isQuiz && data.studentScores && data.studentScores.length > 0 && (
+      {isQuiz && data.studentStats.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="font-semibold mb-3">Poäng per elev</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {data.studentScores.map((s) => (
-              <div
-                key={s.studentNumber}
-                className={`rounded p-3 text-center ${
-                  s.percentage >= 80
-                    ? "bg-green-50 border border-green-200"
-                    : s.percentage >= 50
-                    ? "bg-yellow-50 border border-yellow-200"
-                    : "bg-red-50 border border-red-200"
-                }`}
-              >
-                <div className="text-xs text-gray-700">#{s.studentNumber}</div>
-                <div className="text-lg font-bold">{s.correct}/{s.total}</div>
-                <div className="text-xs text-gray-700">{s.percentage}%</div>
-              </div>
-            ))}
+            {data.studentStats.map((s) => {
+              const pct = s.percentage ?? 0;
+              return (
+                <div
+                  key={s.studentNumber}
+                  className={`rounded p-3 text-center ${
+                    pct >= 80
+                      ? "bg-green-50 border border-green-200"
+                      : pct >= 50
+                      ? "bg-yellow-50 border border-yellow-200"
+                      : "bg-red-50 border border-red-200"
+                  }`}
+                >
+                  <div className="text-xs text-gray-700">#{s.studentNumber}</div>
+                  <div className="text-lg font-bold">{s.correct}/{s.total}</div>
+                  <div className="text-xs text-gray-700">{pct}%</div>
+                  <div className="text-xs text-gray-500">Svarade: {s.answered}/{data.survey.totalQuestions}</div>
+                </div>
+              );
+            })}
           </div>
-          {data.studentScores.length > 0 && (
-            <div className="mt-3 text-sm text-gray-700">
-              Snitt: {Math.round(data.studentScores.reduce((s, x) => s + x.percentage, 0) / data.studentScores.length)}%
-            </div>
-          )}
+          <div className="mt-3 text-sm text-gray-700">
+            Snitt: {Math.round(data.studentStats.reduce((sum, x) => sum + (x.percentage ?? 0), 0) / data.studentStats.length)}%
+          </div>
         </div>
       )}
 
-      <ResultsCharts questions={data.questions} isQuiz={isQuiz} />
+      {!isQuiz && data.studentStats.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 className="font-semibold mb-3">Svarade per elev</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {data.studentStats.map((s) => (
+              <div
+                key={s.studentNumber}
+                className="rounded p-3 text-center bg-gray-50 border border-gray-200"
+              >
+                <div className="text-xs text-gray-700">#{s.studentNumber}</div>
+                <div className="text-lg font-bold">{s.answered}/{data.survey.totalQuestions}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <ResultsCharts questions={data.questions} isQuiz={isQuiz} totalResponses={data.survey.responseCount} />
     </div>
   );
 }
