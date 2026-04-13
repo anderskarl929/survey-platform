@@ -74,14 +74,6 @@ export async function POST(
       seen.add(a.questionId);
     }
 
-    // Require that every question in the survey is answered
-    if (seen.size !== survey.questions.length) {
-      return NextResponse.json(
-        { error: "Alla frågor i enkäten måste besvaras" },
-        { status: 400 }
-      );
-    }
-
     // Build answer data, computing isCorrect for multiple choice questions in all modes
     const isQuiz = survey.mode === "QUIZ";
     const answerData = answers.map((a) => {
