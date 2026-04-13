@@ -89,13 +89,14 @@ model SurveyQuestion {
 }
 
 model Response {
-  id        Int      @id @default(autoincrement())
-  surveyId  Int
-  studentId Int
-  createdAt DateTime @default(now())
-  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  student   Student  @relation(fields: [studentId], references: [id])
-  answers   Answer[]
+  id                  Int      @id @default(autoincrement())
+  surveyId            Int
+  studentId           Int
+  createdAt           DateTime @default(now())
+  lockModeViolations  Int      @default(0)
+  survey              Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  student             Student  @relation(fields: [studentId], references: [id])
+  answers             Answer[]
 
   @@index([surveyId, studentId])
   @@index([surveyId])

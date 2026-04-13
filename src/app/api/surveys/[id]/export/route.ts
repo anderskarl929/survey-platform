@@ -43,10 +43,11 @@ export async function GET(
 
   const questions = survey.questions.map((sq) => sq.question);
 
-  // CSV header
+  // CSV header (Avvikelser-kolumnen endast för lockMode-quiz)
   const headers = [
     "Elevnummer",
     "Tidpunkt",
+    ...(survey.lockMode ? ["Avvikelser"] : []),
     ...questions.map((q) => q.text),
   ];
 
@@ -58,6 +59,7 @@ export async function GET(
     return [
       r.student.number,
       r.createdAt.toISOString(),
+      ...(survey.lockMode ? [r.lockModeViolations] : []),
       ...questions.map((q) => answerMap.get(q.id) || ""),
     ];
   });
@@ -65,7 +67,7 @@ export async function GET(
   const csvContent = [
     headers.map(escCsv).join(","),
     ...rows.map((row) => row.map(escCsv).join(",")),
-  ].join("\n");
+  ].join("\r\n");
 
   // BOM for Excel UTF-8 compatibility
   const bom = "\uFEFF";

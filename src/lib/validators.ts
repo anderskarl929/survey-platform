@@ -9,6 +9,7 @@ export const respondSchema = z.object({
       })
     )
     .min(1, "Minst ett svar krävs"),
+  lockModeViolations: z.number().int().min(0).max(1000).optional(),
 });
 
 export const createCourseSchema = z.object({

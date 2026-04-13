@@ -24,7 +24,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { answers } = respondSchema.parse(body);
+    const { answers, lockModeViolations } = respondSchema.parse(body);
 
     const survey = await prisma.survey.findUnique({
       where: { id: surveyId },
@@ -102,6 +102,7 @@ export async function POST(
       data: {
         surveyId,
         studentId: session.studentId,
+        lockModeViolations: survey.lockMode ? lockModeViolations ?? 0 : 0,
         answers: { create: answerData },
       },
     });

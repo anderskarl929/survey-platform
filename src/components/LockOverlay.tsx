@@ -4,9 +4,10 @@ import { useEffect, useState, useCallback, useRef } from "react";
 
 interface LockOverlayProps {
   enabled: boolean;
+  onViolationChange?: (count: number) => void;
 }
 
-export default function LockOverlay({ enabled }: LockOverlayProps) {
+export default function LockOverlay({ enabled, onViolationChange }: LockOverlayProps) {
   const [violations, setViolations] = useState(0);
   const [showWarning, setShowWarning] = useState(false);
   const [warningType, setWarningType] = useState<"tab" | "fullscreen">("tab");
@@ -17,11 +18,15 @@ export default function LockOverlay({ enabled }: LockOverlayProps) {
   const handleViolation = useCallback(
     (type: "tab" | "fullscreen") => {
       if (!enabled) return;
-      setViolations((v) => v + 1);
+      setViolations((v) => {
+        const next = v + 1;
+        onViolationChange?.(next);
+        return next;
+      });
       setWarningType(type);
       setShowWarning(true);
     },
-    [enabled]
+    [enabled, onViolationChange]
   );
 
   // Show fullscreen entry prompt on mount

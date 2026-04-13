@@ -53,6 +53,7 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
   const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [lockViolations, setLockViolations] = useState(0);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load draft and flagged questions on mount
@@ -150,7 +151,10 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
       const res = await fetch(`/api/surveys/${survey.id}/respond`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: answerList }),
+        body: JSON.stringify({
+          answers: answerList,
+          lockModeViolations: lockMode ? lockViolations : undefined,
+        }),
       });
 
       const data = await res.json();
@@ -206,7 +210,10 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <LockOverlay enabled={lockMode && !submitted} />
+      <LockOverlay
+        enabled={lockMode && !submitted}
+        onViolationChange={setLockViolations}
+      />
       <div className="card p-6 mb-6">
         <h1 className="text-2xl font-bold tracking-tight">{survey.title}</h1>
         {survey.description && (
