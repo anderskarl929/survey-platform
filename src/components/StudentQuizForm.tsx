@@ -132,11 +132,19 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    const unanswered = survey.questions.filter((q) => !answers[q.id]?.trim());
+    if (unanswered.length > 0) {
+      setError(`Du har ${unanswered.length} obesvarad${unanswered.length === 1 ? " fråga" : "e frågor"}. Alla frågor måste besvaras innan du kan skicka in.`);
+      return;
+    }
+
     setSubmitting(true);
 
-    const answerList = survey.questions
-      .filter((q) => answers[q.id]?.trim())
-      .map((q) => ({ questionId: q.id, value: answers[q.id] }));
+    const answerList = survey.questions.map((q) => ({
+      questionId: q.id,
+      value: answers[q.id],
+    }));
 
     try {
       const res = await fetch(`/api/surveys/${survey.id}/respond`, {

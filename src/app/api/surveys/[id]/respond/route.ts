@@ -50,12 +50,34 @@ export async function POST(
       );
     }
 
-    // Validate that answers reference questions that belong to this survey
-    const surveyQuestionIds = new Set(survey.questions.map((sq) => sq.questionId));
-    const invalidAnswers = answers.filter((a) => !surveyQuestionIds.has(a.questionId));
-    if (invalidAnswers.length > 0) {
+    // Build a questionId → SurveyQuestion lookup map (O(1) access)
+    const questionMap = new Map(
+      survey.questions.map((sq) => [sq.questionId, sq])
+    );
+
+    // Validate that every answer references a question in this survey AND
+    // that there are no duplicate answers for the same question.
+    const seen = new Set<number>();
+    for (const a of answers) {
+      if (!questionMap.has(a.questionId)) {
+        return NextResponse.json(
+          { error: "Vissa svar refererar till frågor som inte ingår i enkäten" },
+          { status: 400 }
+        );
+      }
+      if (seen.has(a.questionId)) {
+        return NextResponse.json(
+          { error: "Samma fråga besvaras flera gånger" },
+          { status: 400 }
+        );
+      }
+      seen.add(a.questionId);
+    }
+
+    // Require that every question in the survey is answered
+    if (seen.size !== survey.questions.length) {
       return NextResponse.json(
-        { error: "Vissa svar refererar till frågor som inte ingår i enkäten" },
+        { error: "Alla frågor i enkäten måste besvaras" },
         { status: 400 }
       );
     }
@@ -64,9 +86,7 @@ export async function POST(
     const isQuiz = survey.mode === "QUIZ";
     const answerData = answers.map((a) => {
       let isCorrect: boolean | null = null;
-      const sq = survey.questions.find(
-        (sq) => sq.questionId === a.questionId
-      );
+      const sq = questionMap.get(a.questionId);
       if (sq && sq.question.type === "MULTIPLE_CHOICE") {
         if (a.value === "__UNSURE__") {
           isCorrect = null; // Metacognitive "I'm not sure" - neither correct nor incorrect
@@ -103,8 +123,7 @@ export async function POST(
       };
     }
 
-    // Return quiz results with correct answers for immediate feedback
-    // Fetch saved answers to get their IDs
+    // Fetch saved answers to get their IDs for the immediate-feedback payload
     const savedAnswers = await prisma.answer.findMany({
       where: { responseId: response.id },
       select: { id: true, questionId: true },
@@ -113,47 +132,29 @@ export async function POST(
       savedAnswers.map((a) => [a.questionId, a.id])
     );
 
-    let quizResults = null;
-    if (isQuiz) {
-      quizResults = answerData.map((a) => {
-        const sq = survey.questions.find(
-          (sq) => sq.questionId === a.questionId
-        );
-        const correctOption = sq?.question.options.find((o) => o.isCorrect);
-        return {
-          answerId: answerIdMap.get(a.questionId) ?? null,
-          questionId: a.questionId,
-          questionText: sq?.question.text,
-          questionType: sq?.question.type,
-          yourAnswer: a.value,
-          isCorrect: a.isCorrect,
-          correctAnswer: correctOption?.text || null,
-        };
-      });
-    }
-
-    // For surveys (non-quiz), also return answer IDs and correct/incorrect info
-    let surveyResults = null;
-    if (!isQuiz) {
-      surveyResults = answerData.map((a) => {
-        const sq = survey.questions.find(
-          (sq) => sq.questionId === a.questionId
-        );
-        const correctOption = sq?.question.options.find((o) => o.isCorrect);
-        return {
-          answerId: answerIdMap.get(a.questionId) ?? null,
-          questionId: a.questionId,
-          questionText: sq?.question.text,
-          questionType: sq?.question.type,
-          yourAnswer: a.value,
-          isCorrect: a.isCorrect,
-          correctAnswer: correctOption?.text || null,
-        };
-      });
-    }
+    // Immediate feedback results (same shape for quiz and survey, client decides rendering)
+    const results = answerData.map((a) => {
+      const sq = questionMap.get(a.questionId);
+      const correctOption = sq?.question.options.find((o) => o.isCorrect);
+      return {
+        answerId: answerIdMap.get(a.questionId) ?? null,
+        questionId: a.questionId,
+        questionText: sq?.question.text,
+        questionType: sq?.question.type,
+        yourAnswer: a.value,
+        isCorrect: a.isCorrect,
+        correctAnswer: correctOption?.text || null,
+      };
+    });
 
     return NextResponse.json(
-      { success: true, responseId: response.id, score, quizResults, surveyResults },
+      {
+        success: true,
+        responseId: response.id,
+        score,
+        quizResults: isQuiz ? results : null,
+        surveyResults: !isQuiz ? results : null,
+      },
       { status: 201 }
     );
   } catch (error) {
