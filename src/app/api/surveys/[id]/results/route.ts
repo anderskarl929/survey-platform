@@ -40,13 +40,15 @@ export async function GET(
       r.answers.filter((a) => a.questionId === q.id)
     );
 
+    const answeredBy = questionAnswers.length;
+
     if (q.type === "MULTIPLE_CHOICE") {
       const optionCounts: Record<string, number> = {};
       q.options.forEach((o) => (optionCounts[o.text] = 0));
       questionAnswers.forEach((a) => {
         optionCounts[a.value] = (optionCounts[a.value] || 0) + 1;
       });
-      return { id: q.id, text: q.text, type: q.type, optionCounts };
+      return { id: q.id, text: q.text, type: q.type, optionCounts, answeredBy };
     }
 
     return {
@@ -54,6 +56,7 @@ export async function GET(
       text: q.text,
       type: q.type,
       textResponses: questionAnswers.map((a) => a.value),
+      answeredBy,
     };
   });
 
@@ -62,6 +65,7 @@ export async function GET(
       id: survey.id,
       title: survey.title,
       responseCount: survey.responses.length,
+      totalQuestions: survey.questions.length,
     },
     questions,
   });

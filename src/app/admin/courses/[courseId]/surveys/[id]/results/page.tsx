@@ -118,7 +118,7 @@ export default function CourseResultsPage() {
                   }`}
                 >
                   <div className="text-xs text-gray-700">#{s.studentNumber}</div>
-                  <div className="text-lg font-bold">{s.correct}/{s.total}</div>
+                  <div className="text-lg font-bold">{s.correct ?? 0}/{s.total ?? 0}</div>
                   <div className="text-xs text-gray-700">{pct}%</div>
                   <div className="text-xs text-gray-500">Svarade: {s.answered}/{data.survey.totalQuestions}</div>
                 </div>
