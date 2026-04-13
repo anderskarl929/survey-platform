@@ -4,7 +4,11 @@
   "type": "module",
   "main": "dist/server.js",
   "scripts": {
+    "sync-schema": "node scripts/sync-schema.mjs",
+    "prebuild": "npm run sync-schema && npx prisma generate",
     "build": "tsc",
+    "predev": "npm run sync-schema",
+    "predev:http": "npm run sync-schema",
     "start": "node dist/server.js",
     "start:http": "node dist/http-server.js",
     "dev": "npx tsx src/server.ts",

@@ -27,6 +27,7 @@ model Student {
   createdAt    DateTime   @default(now())
   responses         Response[]
   flaggedQuestions   FlaggedQuestion[]
+  drafts            DraftResponse[]
 
   @@unique([courseId, number])
 }
@@ -73,6 +74,7 @@ model Survey {
   createdAt   DateTime         @default(now())
   questions   SurveyQuestion[]
   responses   Response[]
+  drafts      DraftResponse[]
 }
 
 model SurveyQuestion {
@@ -95,7 +97,7 @@ model Response {
   student   Student  @relation(fields: [studentId], references: [id])
   answers   Answer[]
 
-  @@unique([surveyId, studentId])
+  @@index([surveyId, studentId])
   @@index([surveyId])
   @@index([studentId])
 }
@@ -123,6 +125,20 @@ model FlaggedQuestion {
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, questionId])
+  @@index([studentId])
+}
+
+model DraftResponse {
+  id        Int      @id @default(autoincrement())
+  surveyId  Int
+  studentId Int
+  answers   String   // JSON: Record<questionId, value>
+  updatedAt DateTime @updatedAt
+
+  survey  Survey  @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([surveyId, studentId])
   @@index([studentId])
 }
 
