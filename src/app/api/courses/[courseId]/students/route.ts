@@ -5,13 +5,14 @@ import { handleApiError } from "@/lib/api-helpers";
 import { requireAdmin } from "@/lib/require-auth";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
+import { randomInt } from "node:crypto";
 
 function generatePassword(): string {
   // 8 chars, alphanumeric, easy to read (no ambiguous chars)
   const chars = "abcdefghjkmnpqrstuvwxyz23456789";
   let pw = "";
   for (let i = 0; i < 8; i++) {
-    pw += chars[Math.floor(Math.random() * chars.length)];
+    pw += chars[randomInt(0, chars.length)];
   }
   return pw;
 }
