@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import SurveyForm from "@/components/SurveyForm";
+import { getStudentSession } from "@/lib/student-session";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,11 @@ export default async function PublicSurveyPage({
   params: Promise<{ shareCode: string }>;
 }) {
   const { shareCode } = await params;
+
+  const session = await getStudentSession();
+  if (!session) {
+    redirect(`/login?next=${encodeURIComponent(`/s/${shareCode}`)}`);
+  }
 
   const survey = await prisma.survey.findUnique({
     where: { shareCode },
@@ -22,6 +28,10 @@ export default async function PublicSurveyPage({
   });
 
   if (!survey) notFound();
+
+  if (survey.courseId !== session.courseId) {
+    redirect("/student");
+  }
 
   const surveyData = {
     id: survey.id,

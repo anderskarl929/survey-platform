@@ -1,10 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+
+function safeNext(raw: string | null): string {
+  if (!raw) return "/student";
+  if (!raw.startsWith("/") || raw.startsWith("//")) return "/student";
+  return raw;
+}
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = safeNext(searchParams.get("next"));
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -33,7 +41,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/student");
+      router.push(next);
     } catch {
       setError("Kunde inte ansluta till servern. Försök igen.");
       setLoading(false);
