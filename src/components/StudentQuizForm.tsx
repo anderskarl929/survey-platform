@@ -84,9 +84,6 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
 
   const saveDraft = useCallback(
     async (currentAnswers: Record<number, string>) => {
-      const hasAnswers = Object.values(currentAnswers).some((v) => v.trim());
-      if (!hasAnswers) return;
-
       setDraftStatus("saving");
       try {
         const res = await fetch(`/api/surveys/${survey.id}/draft`, {
@@ -134,15 +131,22 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
     e.preventDefault();
     setError("");
 
-    const unanswered = survey.questions.filter((q) => !answers[q.id]?.trim());
-    if (unanswered.length > 0) {
-      setError(`Du har ${unanswered.length} obesvarad${unanswered.length === 1 ? " fråga" : "e frågor"}. Alla frågor måste besvaras innan du kan skicka in.`);
+    const answered = survey.questions.filter((q) => answers[q.id]?.trim());
+    const unansweredCount = survey.questions.length - answered.length;
+
+    if (answered.length === 0) {
+      setError("Du måste besvara minst en fråga innan du kan lämna in.");
       return;
+    }
+
+    if (unansweredCount > 0) {
+      const msg = `Du har ${unansweredCount} obesvarad${unansweredCount === 1 ? " fråga" : "e frågor"}. Lämna in ändå?`;
+      if (!confirm(msg)) return;
     }
 
     setSubmitting(true);
 
-    const answerList = survey.questions.map((q) => ({
+    const answerList = answered.map((q) => ({
       questionId: q.id,
       value: answers[q.id],
     }));
