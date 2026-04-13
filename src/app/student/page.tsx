@@ -70,17 +70,25 @@ export default async function StudentDashboard() {
   const allQuestionIds = surveys.flatMap((s) => s.questions.map((sq) => sq.questionId));
   const spacedReviewIds = getSpacedReviewIds(allQuestionIds, allRecords);
 
-  // Map review question IDs to their survey for linking
+  // Build questionId → survey lookup once, instead of O(n*m) per spaced id
+  const surveyByQuestionId = new Map<number, { id: number; title: string }>();
+  for (const s of surveys) {
+    for (const sq of s.questions) {
+      if (!surveyByQuestionId.has(sq.questionId)) {
+        surveyByQuestionId.set(sq.questionId, { id: s.id, title: s.title });
+      }
+    }
+  }
+
   const reviewBySurvey = new Map<number, { surveyId: number; surveyTitle: string; count: number }>();
   for (const qId of spacedReviewIds) {
-    const survey = surveys.find((s) => s.questions.some((sq) => sq.questionId === qId));
-    if (survey) {
-      const existing = reviewBySurvey.get(survey.id);
-      if (existing) {
-        existing.count++;
-      } else {
-        reviewBySurvey.set(survey.id, { surveyId: survey.id, surveyTitle: survey.title, count: 1 });
-      }
+    const entry = surveyByQuestionId.get(qId);
+    if (!entry) continue;
+    const existing = reviewBySurvey.get(entry.id);
+    if (existing) {
+      existing.count++;
+    } else {
+      reviewBySurvey.set(entry.id, { surveyId: entry.id, surveyTitle: entry.title, count: 1 });
     }
   }
   const reviewSurveys = Array.from(reviewBySurvey.values());

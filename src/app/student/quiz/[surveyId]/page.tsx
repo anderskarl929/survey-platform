@@ -59,10 +59,11 @@ export default async function StudentQuizPage({
 
   const questionIds = survey.questions.map((sq) => sq.questionId);
   const { remainingIds } = calculateMastery(questionIds, allRecords);
+  const remainingSet = new Set(remainingIds);
 
   // Filter to only non-mastered questions
   const remainingQuestions = survey.questions
-    .filter((sq) => remainingIds.includes(sq.questionId))
+    .filter((sq) => remainingSet.has(sq.questionId))
     .map((sq) => ({
       id: sq.questionId,
       text: sq.question.text,
