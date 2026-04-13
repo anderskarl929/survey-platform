@@ -29,9 +29,19 @@ export async function GET(
       return NextResponse.json({ draft: null });
     }
 
+    let answers: Record<string, string> = {};
+    try {
+      const parsed = JSON.parse(draft.answers);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        answers = parsed;
+      }
+    } catch {
+      // Skadat utkast - behandla som tomt istället för att krascha
+    }
+
     return NextResponse.json({
       draft: {
-        answers: JSON.parse(draft.answers),
+        answers,
         updatedAt: draft.updatedAt,
       },
     });
