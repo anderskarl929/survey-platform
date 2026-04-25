@@ -9,6 +9,7 @@ import { getResults } from "./tools/get-results.js";
 import { summarizeResults } from "./tools/summarize-results.js";
 import { getStudentProgress } from "./tools/get-student-progress.js";
 import { getFreeTextAnswers, saveFeedback } from "./tools/give-feedback.js";
+import { getRecentResponses } from "./tools/get-recent-responses.js";
 import { listTopics } from "./resources/topics.js";
 import { getQuestionsByTopic } from "./resources/questions.js";
 import { listCourses } from "./resources/courses.js";
@@ -141,6 +142,41 @@ server.tool(
           {
             type: "text" as const,
             text: `Fel vid hämtning av elevprogression: ${(error as Error).message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+);
+
+server.tool(
+  "get_recent_responses",
+  "Lista enkätsvar som kommit in de senaste dygnen, grupperade per enkät. Användbart för att snabbt se vilka enkäter som fått nya svar och av vilka elever. För själva svarsinnehållet, följ upp med get_results eller summarize_results.",
+  {
+    days: z
+      .number()
+      .int()
+      .positive()
+      .default(1)
+      .describe("Antal dygn tillbaka från nu (default 1 = senaste 24h)"),
+    course_id: z
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .describe("Valfritt: filtrera på en specifik kurs"),
+  },
+  async ({ days, course_id }) => {
+    try {
+      const result = await getRecentResponses(days, course_id);
+      return { content: [{ type: "text" as const, text: result }] };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Fel vid hämtning av senaste svar: ${(error as Error).message}`,
           },
         ],
         isError: true,
