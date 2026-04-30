@@ -126,17 +126,6 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
     setError("");
 
     const answered = survey.questions.filter((q) => answers[q.id]?.trim());
-    const unansweredCount = survey.questions.length - answered.length;
-
-    if (answered.length === 0) {
-      setError("Du måste besvara minst en fråga innan du kan lämna in.");
-      return;
-    }
-
-    if (unansweredCount > 0) {
-      const msg = `Du har ${unansweredCount} obesvarad${unansweredCount === 1 ? " fråga" : "e frågor"}. Lämna in ändå?`;
-      if (!confirm(msg)) return;
-    }
 
     setSubmitting(true);
 
