@@ -254,7 +254,7 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
         {isLastQuestion ? (
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || answeredCount === 0}
             className="btn-primary flex-1 py-3"
           >
             {submitting ? "Skickar..." : "Skicka svar"}

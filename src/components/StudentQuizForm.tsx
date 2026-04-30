@@ -275,7 +275,7 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
         {isLastQuestion ? (
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || answeredCount === 0}
             className="btn-primary flex-1 py-3"
           >
             {submitting ? "Skickar..." : "Skicka svar"}
