@@ -28,6 +28,7 @@ model Student {
   responses         Response[]
   flaggedQuestions   FlaggedQuestion[]
   drafts            DraftResponse[]
+  assignmentFeedbacks AssignmentFeedback[]
 
   @@unique([courseId, number])
 }
@@ -149,4 +150,17 @@ model Admin {
   name         String
   passwordHash String
   createdAt    DateTime @default(now())
+}
+
+model AssignmentFeedback {
+  id        Int       @id @default(autoincrement())
+  studentId Int
+  student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([studentId, createdAt])
 }

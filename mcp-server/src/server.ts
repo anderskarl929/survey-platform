@@ -10,6 +10,10 @@ import { summarizeResults } from "./tools/summarize-results.js";
 import { getStudentProgress } from "./tools/get-student-progress.js";
 import { getFreeTextAnswers, saveFeedback } from "./tools/give-feedback.js";
 import { getRecentResponses } from "./tools/get-recent-responses.js";
+import {
+  postAssignmentFeedback,
+  bulkPostAssignmentFeedback,
+} from "./tools/post-assignment-feedback.js";
 import { listTopics } from "./resources/topics.js";
 import { getQuestionsByTopic } from "./resources/questions.js";
 import { listCourses } from "./resources/courses.js";
@@ -233,6 +237,61 @@ server.tool(
             type: "text" as const,
             text: `Fel vid sparning: ${(error as Error).message}`,
           },
+        ],
+        isError: true,
+      };
+    }
+  }
+);
+
+server.tool(
+  "post_assignment_feedback",
+  "Posta fritextfeedback på en uppgift utanför plattformen (t.ex. uppsats, presentation) till en specifik elev. Eleven ser den i /student/feedback-fliken.",
+  {
+    course_code: z.string().min(1).describe("Kurskod (t.ex. SAM24A)"),
+    student_number: z.number().int().positive().describe("Elevens nummer i kursen"),
+    title: z.string().min(1).describe("Uppgiftens titel (t.ex. \"Uppsats om imperialismen\")"),
+    content: z.string().min(1).describe("Feedbacktexten (fritext, gärna utförlig)"),
+  },
+  async ({ course_code, student_number, title, content }) => {
+    try {
+      const result = await postAssignmentFeedback(course_code, student_number, title, content);
+      return { content: [{ type: "text" as const, text: result }] };
+    } catch (error) {
+      return {
+        content: [
+          { type: "text" as const, text: `Fel: ${(error as Error).message}` },
+        ],
+        isError: true,
+      };
+    }
+  }
+);
+
+server.tool(
+  "bulk_post_assignment_feedback",
+  "Posta fritextfeedback till flera elever i samma kurs i ett anrop. Använd när du just rättat hela klassens uppgift.",
+  {
+    course_code: z.string().min(1).describe("Kurskod (t.ex. SAM24A)"),
+    items: z
+      .array(
+        z.object({
+          student_number: z.number().int().positive(),
+          title: z.string().min(1),
+          content: z.string().min(1),
+        })
+      )
+      .min(1)
+      .describe("Array av feedback-poster, en per elev"),
+  },
+  async ({ course_code, items }) => {
+    try {
+      const result = await bulkPostAssignmentFeedback(course_code, items);
+      return { content: [{ type: "text" as const, text: result }] };
+    } catch (error) {
+      return {
+        content: [
+          { type: "text" as const, text: `Fel: ${(error as Error).message}` },
         ],
         isError: true,
       };
