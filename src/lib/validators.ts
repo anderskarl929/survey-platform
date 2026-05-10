@@ -84,3 +84,23 @@ export const createStudentsSchema = z.union([
     number: z.number().int().positive(),
   }),
 ]);
+
+export const createAssignmentFeedbackSchema = z.object({
+  feedbacks: z
+    .array(
+      z.object({
+        student_number: z.number().int().positive(),
+        title: z
+          .string()
+          .min(1, "Titel krävs")
+          .max(200)
+          .transform((s) => s.trim()),
+        content: z
+          .string()
+          .min(1, "Innehåll krävs")
+          .max(10000, "Feedbacken är för lång (max 10000 tecken)"),
+      })
+    )
+    .min(1, "Minst en feedback krävs")
+    .max(200, "Max 200 feedbacks per anrop"),
+});
