@@ -35,6 +35,27 @@ tags:
     description: Import and manage questions
 
 paths:
+  /api/surveys:
+    get:
+      tags: [surveys]
+      summary: List all surveys
+      description: |
+        Returns all surveys across all courses, ordered by creation date
+        (newest first). Each item includes counts of attached questions
+        and submitted responses.
+      operationId: listSurveys
+      responses:
+        "200":
+          description: List of surveys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SurveyListItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /api/surveys/{surveyId}/results:
     get:
       tags: [results]
@@ -181,6 +202,40 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /api/courses/{courseId}/assignment-feedback:
+    post:
+      tags: [feedback]
+      summary: Create assignment feedback for one or more students
+      description: |
+        Bulk-creates `AssignmentFeedback` rows in the student's feedback inbox,
+        decoupled from any survey response. Used to deliver AI-generated
+        feedback on external assignments (e.g. Google Forms-uppgifter
+        hämtade via classroom-tool). Each item targets a student by their
+        per-course `student_number`; if no student with that number exists
+        in the course, the item is skipped (returned in `skipped_numbers`).
+      operationId: createAssignmentFeedback
+      parameters:
+        - $ref: "#/components/parameters/CourseId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAssignmentFeedbackRequest"
+      responses:
+        "201":
+          description: Feedback created (zero or more rows; check `created` and `skipped`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateAssignmentFeedbackResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /api/surveys/{surveyId}/feedback/pending:
     get:
       tags: [feedback]
@@ -311,6 +366,39 @@ components:
       properties:
         error:
           type: string
+
+    SurveyListItem:
+      type: object
+      required:
+        [id, title, description, shareCode, mode, lockMode, courseId, createdAt, _count]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        shareCode:
+          type: string
+        mode:
+          $ref: "#/components/schemas/SurveyMode"
+        lockMode:
+          type: boolean
+        courseId:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        _count:
+          type: object
+          required: [questions, responses]
+          properties:
+            questions:
+              type: integer
+              description: Number of questions attached to this survey
+            responses:
+              type: integer
+              description: Number of student responses submitted
 
     QuestionType:
       type: string
@@ -507,6 +595,56 @@ components:
           type: integer
         skipped:
           type: integer
+        message:
+          type: string
+
+    CreateAssignmentFeedbackRequest:
+      type: object
+      required: [feedbacks]
+      properties:
+        feedbacks:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items:
+            $ref: "#/components/schemas/AssignmentFeedbackItem"
+
+    AssignmentFeedbackItem:
+      type: object
+      required: [student_number, title, content]
+      properties:
+        student_number:
+          type: integer
+          minimum: 1
+          description: Per-course student number (matches `Student.number`)
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Short title shown in the student feedback inbox
+        content:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: Feedback body (markdown allowed)
+
+    CreateAssignmentFeedbackResponse:
+      type: object
+      required: [success, created, skipped, skipped_numbers, message]
+      properties:
+        success:
+          type: boolean
+        created:
+          type: integer
+          description: Number of `AssignmentFeedback` rows actually created
+        skipped:
+          type: integer
+          description: Number of items skipped (student not in course)
+        skipped_numbers:
+          type: array
+          items:
+            type: integer
+          description: Student numbers that were not found in the course
         message:
           type: string
 
