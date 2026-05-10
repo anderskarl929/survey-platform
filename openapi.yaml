@@ -27,6 +27,12 @@ tags:
     description: Read survey results
   - name: feedback
     description: Manage feedback on free-text answers
+  - name: surveys
+    description: Create and manage surveys
+  - name: students
+    description: Read student progress
+  - name: questions
+    description: Import and manage questions
 
 paths:
   /api/surveys/{surveyId}/results:
@@ -87,6 +93,93 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+
+  /api/courses/{courseId}/surveys:
+    post:
+      tags: [surveys]
+      summary: Create a new survey in a course
+      description: |
+        Creates a survey under the given course, attaching the provided
+        questions in the order they appear in `questionIds`. All
+        `questionIds` must belong to the same course.
+      operationId: createSurvey
+      parameters:
+        - $ref: "#/components/parameters/CourseId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSurveyRequest"
+      responses:
+        "201":
+          description: Survey created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedSurvey"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/courses/{courseId}/students/{studentNumber}:
+    get:
+      tags: [students]
+      summary: Get a student's progress across all surveys
+      description: |
+        Returns every survey response submitted by the given student
+        (identified by their per-course number), with per-question answers
+        and quiz scores when applicable.
+      operationId: getStudentProgress
+      parameters:
+        - $ref: "#/components/parameters/CourseId"
+        - $ref: "#/components/parameters/StudentNumber"
+      responses:
+        "200":
+          description: Student progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentProgress"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/courses/{courseId}/questions/import:
+    post:
+      tags: [questions]
+      summary: Bulk-import questions from CSV
+      description: |
+        Parses CSV content and creates questions under the given course,
+        upserting topics as needed. Expected columns: `topic`, `text`,
+        `type` (MULTIPLE_CHOICE or FREE_TEXT), `option1`..`option10`,
+        `correctAnswer`.
+      operationId: importQuestions
+      parameters:
+        - $ref: "#/components/parameters/CourseId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportQuestionsRequest"
+      responses:
+        "200":
+          description: Import succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportQuestionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /api/surveys/{surveyId}/feedback/pending:
     get:
@@ -168,6 +261,24 @@ components:
       in: path
       required: true
       description: Question ID
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    CourseId:
+      name: courseId
+      in: path
+      required: true
+      description: Course ID
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    StudentNumber:
+      name: studentNumber
+      in: path
+      required: true
+      description: Per-course student number (1-based)
       schema:
         type: integer
         format: int64
@@ -398,3 +509,126 @@ components:
           type: integer
         message:
           type: string
+
+    CreateSurveyRequest:
+      type: object
+      required: [title, questionIds]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 1000
+          default: ""
+        mode:
+          $ref: "#/components/schemas/SurveyMode"
+          default: SURVEY
+        lockMode:
+          type: boolean
+          default: false
+        questionIds:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            minimum: 1
+
+    CreatedSurvey:
+      type: object
+      required: [id, title, shareCode, courseId, mode, lockMode]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        shareCode:
+          type: string
+        courseId:
+          type: integer
+        mode:
+          $ref: "#/components/schemas/SurveyMode"
+        lockMode:
+          type: boolean
+        questions:
+          type: array
+          items:
+            type: object
+            description: Survey-question join row with embedded question details
+            additionalProperties: true
+
+    StudentProgress:
+      type: object
+      required: [studentNumber, surveys]
+      properties:
+        studentNumber:
+          type: integer
+        surveys:
+          type: array
+          items:
+            $ref: "#/components/schemas/StudentSurveyResponse"
+
+    StudentSurveyResponse:
+      type: object
+      required: [surveyId, surveyTitle, mode, respondedAt, answers]
+      properties:
+        surveyId:
+          type: integer
+        surveyTitle:
+          type: string
+        mode:
+          $ref: "#/components/schemas/SurveyMode"
+        respondedAt:
+          type: string
+          format: date-time
+        score:
+          type: [object, "null"]
+          description: Quiz-only score breakdown
+          required: [correct, total]
+          properties:
+            correct:
+              type: integer
+            total:
+              type: integer
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/StudentProgressAnswer"
+
+    StudentProgressAnswer:
+      type: object
+      required: [questionId, questionText, questionType, value]
+      properties:
+        questionId:
+          type: integer
+        questionText:
+          type: string
+        questionType:
+          $ref: "#/components/schemas/QuestionType"
+        value:
+          type: string
+        isCorrect:
+          type: [boolean, "null"]
+
+    ImportQuestionsRequest:
+      type: object
+      required: [csvContent]
+      properties:
+        csvContent:
+          type: string
+          minLength: 1
+          maxLength: 1000000
+          description: |
+            Raw CSV body with header row. Columns: topic, text, type
+            (MULTIPLE_CHOICE or FREE_TEXT), option1..option10, correctAnswer.
+
+    ImportQuestionsResponse:
+      type: object
+      required: [imported]
+      properties:
+        imported:
+          type: integer
+          description: Number of questions successfully imported
