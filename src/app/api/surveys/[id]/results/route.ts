@@ -108,6 +108,8 @@ async function getDetailed(surveyId: number) {
         }))
     );
 
+    const answeredBy = answersWithStudent.length;
+
     if (q.type === "MULTIPLE_CHOICE") {
       const optionCounts: Record<string, number> = {};
       q.options.forEach((o) => (optionCounts[o.text] = 0));
@@ -120,6 +122,7 @@ async function getDetailed(surveyId: number) {
         type: q.type,
         optionCounts,
         correctAnswer: isQuiz ? correctOption?.text ?? null : null,
+        answeredBy,
         studentAnswers: answersWithStudent.map((a) => ({
           studentNumber: a.studentNumber,
           value: a.value,
@@ -133,6 +136,7 @@ async function getDetailed(surveyId: number) {
       text: q.text,
       type: q.type,
       textResponses: answersWithStudent.map((a) => a.value),
+      answeredBy,
       studentAnswers: answersWithStudent.map((a) => ({
         studentNumber: a.studentNumber,
         value: a.value,
@@ -146,6 +150,7 @@ async function getDetailed(surveyId: number) {
       title: survey.title,
       mode: survey.mode,
       responseCount: survey.responses.length,
+      totalQuestions: survey.questions.length,
     },
     questions,
   });

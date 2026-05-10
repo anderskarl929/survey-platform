@@ -215,7 +215,7 @@ components:
       properties:
         survey:
           type: object
-          required: [id, title, responseCount]
+          required: [id, title, responseCount, totalQuestions]
           properties:
             id:
               type: integer
@@ -223,6 +223,9 @@ components:
               type: string
             responseCount:
               type: integer
+            totalQuestions:
+              type: integer
+              description: Total number of questions in the survey
         questions:
           type: array
           items:
@@ -230,7 +233,7 @@ components:
 
     QuestionSummary:
       type: object
-      required: [id, text, type]
+      required: [id, text, type, answeredBy]
       properties:
         id:
           type: integer
@@ -238,6 +241,9 @@ components:
           type: string
         type:
           $ref: "#/components/schemas/QuestionType"
+        answeredBy:
+          type: integer
+          description: Number of students who answered this question
         optionCounts:
           type: object
           additionalProperties:
@@ -255,7 +261,7 @@ components:
       properties:
         survey:
           type: object
-          required: [id, title, mode, responseCount]
+          required: [id, title, mode, responseCount, totalQuestions]
           properties:
             id:
               type: integer
@@ -265,6 +271,9 @@ components:
               $ref: "#/components/schemas/SurveyMode"
             responseCount:
               type: integer
+            totalQuestions:
+              type: integer
+              description: Total number of questions in the survey
         questions:
           type: array
           items:
@@ -272,7 +281,7 @@ components:
 
     QuestionDetailed:
       type: object
-      required: [id, text, type, studentAnswers]
+      required: [id, text, type, answeredBy, studentAnswers]
       properties:
         id:
           type: integer
@@ -280,6 +289,9 @@ components:
           type: string
         type:
           $ref: "#/components/schemas/QuestionType"
+        answeredBy:
+          type: integer
+          description: Number of students who answered this question
         optionCounts:
           type: object
           additionalProperties:
