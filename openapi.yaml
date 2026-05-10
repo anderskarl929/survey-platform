@@ -1,0 +1,388 @@
+openapi: 3.1.0
+info:
+  title: Survey Platform API
+  version: 0.1.0
+  description: |
+    Admin REST API for the Survey Platform — used by the admin webapp and
+    by the survey-platform CLI / MCP server.
+
+    All endpoints require admin authentication: either a NextAuth session
+    cookie (set when logging in via /admin/login) or an
+    `Authorization: Bearer <ADMIN_API_KEY>` header.
+  contact:
+    name: Survey Platform
+servers:
+  - url: "{server}"
+    description: Survey Platform deployment
+    variables:
+      server:
+        default: http://localhost:3000
+        description: Base URL of the Survey Platform deployment
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: results
+    description: Read survey results
+  - name: feedback
+    description: Manage feedback on free-text answers
+
+paths:
+  /api/surveys/{surveyId}/results:
+    get:
+      tags: [results]
+      summary: Get survey results
+      description: |
+        Returns aggregated results for a survey. Set `detailed=true` to also
+        receive per-student answers and `isCorrect` flags (used by the CLI
+        for feedback generation).
+      operationId: getSurveyResults
+      parameters:
+        - $ref: "#/components/parameters/SurveyId"
+        - name: detailed
+          in: query
+          description: Include per-student answers and isCorrect flags
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Survey results
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/SurveyResultsSummary"
+                  - $ref: "#/components/schemas/SurveyResultsDetailed"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/surveys/{surveyId}/results/summary:
+    get:
+      tags: [results]
+      summary: Get markdown summary of survey results
+      description: |
+        Returns a human-readable markdown summary suitable for AI analysis.
+        For quizzes: per-student score + per-question breakdown.
+        For surveys: per-question breakdown with all free-text answers.
+      operationId: getSurveyResultsSummary
+      parameters:
+        - $ref: "#/components/parameters/SurveyId"
+      responses:
+        "200":
+          description: Markdown summary
+          content:
+            text/markdown:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/surveys/{surveyId}/feedback/pending:
+    get:
+      tags: [feedback]
+      summary: List free-text answers without feedback
+      description: |
+        Returns all free-text answers in the survey that lack feedback.
+        Trivial answers (≤2 chars or known noise like "?", ".", "!") are
+        filtered out automatically.
+      operationId: getPendingFeedback
+      parameters:
+        - $ref: "#/components/parameters/SurveyId"
+      responses:
+        "200":
+          description: Pending feedback grouped by question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PendingFeedback"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/surveys/{surveyId}/questions/{questionId}/feedback:
+    post:
+      tags: [feedback]
+      summary: Submit feedback for a free-text question
+      description: |
+        Bulk-saves AI-generated feedback for one or more student answers
+        to a specific question in a survey. Each item targets a student
+        by number; if the student has no answer for the question, the
+        item is skipped.
+      operationId: submitFeedback
+      parameters:
+        - $ref: "#/components/parameters/SurveyId"
+        - $ref: "#/components/parameters/QuestionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitFeedbackRequest"
+      responses:
+        "200":
+          description: Feedback saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitFeedbackResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: ADMIN_API_KEY configured server-side
+
+  parameters:
+    SurveyId:
+      name: surveyId
+      in: path
+      required: true
+      description: Survey ID
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    QuestionId:
+      name: questionId
+      in: path
+      required: true
+      description: Question ID
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Missing or invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    QuestionType:
+      type: string
+      enum: [MULTIPLE_CHOICE, FREE_TEXT]
+
+    SurveyMode:
+      type: string
+      enum: [SURVEY, QUIZ]
+
+    SurveyResultsSummary:
+      type: object
+      required: [survey, questions]
+      properties:
+        survey:
+          type: object
+          required: [id, title, responseCount]
+          properties:
+            id:
+              type: integer
+            title:
+              type: string
+            responseCount:
+              type: integer
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuestionSummary"
+
+    QuestionSummary:
+      type: object
+      required: [id, text, type]
+      properties:
+        id:
+          type: integer
+        text:
+          type: string
+        type:
+          $ref: "#/components/schemas/QuestionType"
+        optionCounts:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Present for MULTIPLE_CHOICE only
+        textResponses:
+          type: array
+          items:
+            type: string
+          description: Present for FREE_TEXT only
+
+    SurveyResultsDetailed:
+      type: object
+      required: [survey, questions]
+      properties:
+        survey:
+          type: object
+          required: [id, title, mode, responseCount]
+          properties:
+            id:
+              type: integer
+            title:
+              type: string
+            mode:
+              $ref: "#/components/schemas/SurveyMode"
+            responseCount:
+              type: integer
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuestionDetailed"
+
+    QuestionDetailed:
+      type: object
+      required: [id, text, type, studentAnswers]
+      properties:
+        id:
+          type: integer
+        text:
+          type: string
+        type:
+          $ref: "#/components/schemas/QuestionType"
+        optionCounts:
+          type: object
+          additionalProperties:
+            type: integer
+        correctAnswer:
+          type: [string, "null"]
+          description: Set for MULTIPLE_CHOICE in QUIZ mode
+        textResponses:
+          type: array
+          items:
+            type: string
+        studentAnswers:
+          type: array
+          items:
+            $ref: "#/components/schemas/StudentAnswer"
+
+    StudentAnswer:
+      type: object
+      required: [studentNumber, value]
+      properties:
+        studentNumber:
+          type: integer
+        value:
+          type: string
+        isCorrect:
+          type: [boolean, "null"]
+          description: Present for MULTIPLE_CHOICE; null in survey mode
+
+    PendingFeedback:
+      type: object
+      required: [survey, total_pending, questions]
+      properties:
+        survey:
+          type: object
+          required: [id, title]
+          properties:
+            id:
+              type: integer
+            title:
+              type: string
+        total_pending:
+          type: integer
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PendingFeedbackQuestion"
+
+    PendingFeedbackQuestion:
+      type: object
+      required: [question_id, question_text, pending_count, answers]
+      properties:
+        question_id:
+          type: integer
+        question_text:
+          type: string
+        pending_count:
+          type: integer
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/PendingAnswer"
+
+    PendingAnswer:
+      type: object
+      required: [answer_id, student_number, value]
+      properties:
+        answer_id:
+          type: integer
+        student_number:
+          type: integer
+        value:
+          type: string
+
+    SubmitFeedbackRequest:
+      type: object
+      required: [feedbacks]
+      properties:
+        feedbacks:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/FeedbackItem"
+
+    FeedbackItem:
+      type: object
+      required: [student_number, feedback]
+      properties:
+        student_number:
+          type: integer
+          minimum: 1
+        feedback:
+          type: string
+          minLength: 1
+
+    SubmitFeedbackResponse:
+      type: object
+      required: [success, updated, skipped, message]
+      properties:
+        success:
+          type: boolean
+        updated:
+          type: integer
+        skipped:
+          type: integer
+        message:
+          type: string
