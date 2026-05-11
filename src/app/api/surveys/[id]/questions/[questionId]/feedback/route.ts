@@ -68,20 +68,20 @@ export async function POST(
   let skipped = 0;
 
   for (const item of body.feedbacks) {
-    const response = survey.responses.find(
-      (r) => r.student.number === item.student_number && r.answers.length > 0
-    );
-    if (!response) {
+    const answerIds = survey.responses
+      .filter((r) => r.student.number === item.student_number)
+      .flatMap((r) => r.answers.map((a) => a.id));
+
+    if (answerIds.length === 0) {
       skipped++;
       continue;
     }
 
-    const answer = response.answers[0];
-    await prisma.answer.update({
-      where: { id: answer.id },
+    const result = await prisma.answer.updateMany({
+      where: { id: { in: answerIds } },
       data: { feedback: item.feedback },
     });
-    updated++;
+    updated += result.count;
   }
 
   return NextResponse.json({
