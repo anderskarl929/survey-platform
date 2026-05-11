@@ -69,9 +69,9 @@ export async function POST(
 
   for (const item of body.feedbacks) {
     const response = survey.responses.find(
-      (r) => r.student.number === item.student_number
+      (r) => r.student.number === item.student_number && r.answers.length > 0
     );
-    if (!response || response.answers.length === 0) {
+    if (!response) {
       skipped++;
       continue;
     }
