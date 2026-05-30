@@ -15,6 +15,7 @@ import {
   postAssignmentFeedback,
   bulkPostAssignmentFeedback,
 } from "./tools/post-assignment-feedback.js";
+import { deleteSurvey } from "./tools/delete-survey.js";
 import { listTopics } from "./resources/topics.js";
 import { getQuestionsByTopic } from "./resources/questions.js";
 import { listCourses } from "./resources/courses.js";
@@ -356,6 +357,25 @@ server.tool(
       return {
         content: [
           { type: "text" as const, text: `Fel: ${(error as Error).message}` },
+        ],
+        isError: true,
+      };
+    }
+  }
+);
+
+server.tool(
+  "delete_survey",
+  "Radera en enkät/quiz permanent, inklusive alla svar. Använd för att städa bort felskapade enkäter. Kan inte ångras.",
+  { survey_id: z.number().int().positive().describe("Enkätens ID") },
+  async ({ survey_id }) => {
+    try {
+      const result = await deleteSurvey(survey_id);
+      return { content: [{ type: "text" as const, text: result }] };
+    } catch (error) {
+      return {
+        content: [
+          { type: "text" as const, text: `Fel vid radering: ${(error as Error).message}` },
         ],
         isError: true,
       };
