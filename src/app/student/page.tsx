@@ -11,7 +11,7 @@ export default async function StudentDashboard() {
 
   const { studentId, courseId } = session;
 
-  const [course, surveys, flaggedQuestions, drafts] = await Promise.all([
+  const [course, surveys, flaggedQuestions, drafts, units] = await Promise.all([
     prisma.course.findUnique({ where: { id: courseId } }),
     prisma.survey.findMany({
       where: { courseId },
@@ -34,6 +34,7 @@ export default async function StudentDashboard() {
       where: { studentId },
       select: { surveyId: true, updatedAt: true },
     }),
+    prisma.unit.findMany({ where: { courseId }, orderBy: { createdAt: "asc" } }),
   ]);
 
   const draftBySurvey = new Map(drafts.map((d) => [d.surveyId, d.updatedAt]));
@@ -93,6 +94,18 @@ export default async function StudentDashboard() {
   }
   const reviewSurveys = Array.from(reviewBySurvey.values());
 
+  // Moment-gruppering: surveys med unitId visas under sina moment, fristående i den platta listan
+  const submittedSurveyIds = new Set(responses.map((r) => r.surveyId));
+  const unitIdSet = new Set(units.map((u) => u.id));
+  const looseSurveys = surveys.filter((s) => s.unitId == null || !unitIdSet.has(s.unitId));
+  const unitProgress = units
+    .map((u) => {
+      const us = surveys.filter((s) => s.unitId === u.id);
+      const done = us.filter((s) => submittedSurveyIds.has(s.id)).length;
+      return { id: u.id, title: u.title, total: us.length, done };
+    })
+    .filter((u) => u.total > 0);
+
   return (
     <div className="animate-fade-in">
       <div className="mb-6">
@@ -151,13 +164,33 @@ export default async function StudentDashboard() {
         </div>
       )}
 
-      {surveys.length === 0 ? (
+      {unitProgress.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold mb-3 tracking-tight">Moment</h3>
+          <div className="space-y-2">
+            {unitProgress.map((u) => (
+              <Link
+                key={u.id}
+                href={`/student/moment/${u.id}`}
+                className="card p-4 flex items-center justify-between"
+              >
+                <span className="font-medium">{u.title}</span>
+                <span className="text-sm text-muted">
+                  {u.done}/{u.total} inlämnade
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {looseSurveys.length === 0 ? (
         <p className="text-muted text-center py-12">
           Inga quiz tillgängliga ännu.
         </p>
       ) : (
         <div className="space-y-4">
-          {surveys.map((survey) => {
+          {looseSurveys.map((survey) => {
             const questionIds = survey.questions.map((sq) => sq.questionId);
             const { masteredIds, remainingIds } = calculateMastery(
               questionIds,
