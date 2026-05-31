@@ -2,38 +2,8 @@ import { getStudentSession } from "@/lib/student-session";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { buildMomentState, LessonOutline, LessonState, TaskState } from "@/lib/moment-status";
+import { IconCheck, IconArrowRight, IconFlag, IconClock } from "@/components/moment-icons";
 import Link from "next/link";
-
-// ── inline icons (stroke 1.5, 24-box) ────────────────────────
-function IconCheck({ size = 16 }: { size?: number }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
-      <path d="M5 12.5l4.5 4.5L20 6.5" />
-    </svg>
-  );
-}
-function IconArrowRight({ size = 16 }: { size?: number }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
-      <path d="M5 12h14M13 6l6 6-6 6" />
-    </svg>
-  );
-}
-function IconFlag({ size = 16 }: { size?: number }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
-      <path d="M4 21V4h12l-2 4 2 4H4" />
-    </svg>
-  );
-}
-function IconClock({ size = 16 }: { size?: number }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 2" />
-    </svg>
-  );
-}
 
 // ── helpers ───────────────────────────────────────────────────
 function formatDate(iso?: string): string | null {
@@ -296,6 +266,8 @@ export default async function MomentPage({
           <div className="text-xs text-muted">
             {stats.done} klara · <span className="text-accent font-medium">{stats.todo} att göra</span>
             {stats.missed > 0 && <> · <span className="text-error font-medium">{stats.missed} missad</span></>}
+            {" · "}
+            <Link href={`/student/moment/${id}/att-gora`} className="text-primary hover:underline">Att göra-listan →</Link>
           </div>
         </div>
         {resumeTask ? (
@@ -317,6 +289,7 @@ export default async function MomentPage({
           <div className="flex-1 text-sm text-foreground">
             Du har <strong>{stats.missed} missad uppgift</strong> från en tidigare lektion. Den ligger kvar - du kan ta igen den när som helst.
           </div>
+          <Link href={`/student/moment/${id}/att-gora`} className="btn-secondary text-sm shrink-0">Visa →</Link>
         </div>
       )}
 

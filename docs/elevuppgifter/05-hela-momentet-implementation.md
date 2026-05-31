@@ -92,7 +92,9 @@ Skrivit om `student/moment/[unitId]/page.tsx` till Variant B-tidslinjen: hero (m
 - Tidslinjenoder (klar=grön check, aktiv/idag=accent + glow-ring, kommande=ofylld), "Du är här"-chip, veckoavdelare, aktiv lektion utfälld i upphöjt kort, progress-kort + mål-kort.
 - Översätt `design/variants/moment-path.jsx` till era Tailwind-klasser (prototypen använder inline-styles + serif-skin - använd `font-sans`/`font-mono`, inte Fraunces).
 
-### Fas 4 - Uppgiftsflödet (M)
+### Fas 4 - Uppgiftsflödet (M) - KLAR 2026-05-31 (tsc+eslint grönt, ej visuellt testad)
+Ny route `student/moment/[unitId]/att-gora/page.tsx` (Variant A): mono-header + ingress, 4-kolumns summeringsruta (att göra/missade/klara/kommande), grupperna **Gör härnäst** (stora kort med statusprick + lektion-kontext + Börja/Fortsätt), **Missat - ta igen** (rosa kort, Ta igen-knappar), **Kommande** (dämpad), **Klart**. Återanvänder `buildMomentState` + berikar varje task med lektionskontext (titel/vecka/datum) via join mot `moment.lessons`. Ikoner extraherade till delad `src/components/moment-icons.tsx` (Check/ArrowRight/Flag/Clock/Dot); Fas 3-sidan refaktorerad att importera dem + fick navigeringslänkar till att-göra (meter-länk + "Visa" i missad-nudgen). tsc+eslint grönt.
+
 - Ny route `src/app/student/moment/[unitId]/att-gora/page.tsx`, **Variant A** (Gör härnäst / Missat - ta igen / Kommande / Klart).
 - Återanvänder status-helpern från Fas 2. Översätt `design/variants/moment-tasks.jsx`.
 
