@@ -77,13 +77,17 @@ Gjort: `period String?` + `goals String[] @default([])` på `Unit` i båda schem
 - Behöver en server action / API-route som skriver tillbaka till `Unit.lessons` (JSON) + `Unit.period`/`goals`.
 - Minsta version: en enkel formulärlista över lektionerna med ett datumfält per rad.
 
-### Fas 2 - Status-helper (S)
+### Fas 2 - Status-helper (S) - KLAR 2026-05-31 (verifierad, ej committad)
+Skrivet `src/lib/moment-status.ts`: `deriveTaskStatus()` (done/active/todo/missed/upcoming), `buildMomentState()` (per-lektion-status + "Du är här" + aggregat `MomentStats`), `parseLessonDate()`, `MISSED_AFTER_DAYS=7`. Ren modul, matchar `mastery.ts`-stil. Root `tsc --noEmit` grönt; 14/14 assertions pass mot kompilerad kod (inga datum, datum->missed/upcoming, response/draft-prioritet). Wiras in i vyerna i Fas 3/4.
+
 - Ny `src/lib/moment-status.ts`. Funktion `(survey, response?, draft?, lessonDate?, today) -> done|active|todo|missed|upcoming`.
   - `done` = Response finns · `active` = Draft men ingen Response · `upcoming` = lektionsdatum > idag & ej start · `missed` = datum < idag - tröskel & ej start · `todo` = annars.
   - "Du är här"-lektion = första icke-klara lektionen.
 - Aggregatfunktion per moment (procent, klara/att göra/missade/kommande) - motsvarar `M_STATS` i prototypens mockdata.
 
-### Fas 3 - Momentvägen (M)
+### Fas 3 - Momentvägen (M) - KLAR 2026-05-31 (tsc+eslint grönt, ej visuellt testad)
+Skrivit om `student/moment/[unitId]/page.tsx` till Variant B-tidslinjen: hero (mono course·MOMENT·period, titel, lärandemål ur `unit.goals`), slim framstegsmätare (percent+bar+klara/att göra/missad + "Fortsätt"-knapp till resume-task), missad-nudge, veckogrupperad tidslinje (faller tillbaka till en grupp om `week` saknas), noder (done=grön check / current=accent+glow / upcoming=ofylld), aktiv lektion utfälld i primärkant-kort, "Övriga uppgifter" för loose surveys. Wirar in `buildMomentState`. Inline-SVG-ikoner, `font-mono`-etiketter, era Tailwind-tokens. Root når ej DB lokalt (5432) -> visuell verifiering på deploy.
+
 - Uppgradera `src/app/student/moment/[unitId]/page.tsx` till tidslinjen, **Variant B** som default.
 - Tidslinjenoder (klar=grön check, aktiv/idag=accent + glow-ring, kommande=ofylld), "Du är här"-chip, veckoavdelare, aktiv lektion utfälld i upphöjt kort, progress-kort + mål-kort.
 - Översätt `design/variants/moment-path.jsx` till era Tailwind-klasser (prototypen använder inline-styles + serif-skin - använd `font-sans`/`font-mono`, inte Fraunces).
