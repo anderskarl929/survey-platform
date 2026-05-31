@@ -8,15 +8,17 @@ export interface SidebarLink {
   href: string;
   label: string;
   exact?: boolean;
+  badge?: number;
 }
 
 interface BaseSidebarProps {
   links: SidebarLink[];
   headerContent: ReactNode;
   mobileTopbar: ReactNode;
+  footerContent?: ReactNode;
 }
 
-export default function BaseSidebar({ links, headerContent, mobileTopbar }: BaseSidebarProps) {
+export default function BaseSidebar({ links, headerContent, mobileTopbar, footerContent }: BaseSidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -33,17 +35,23 @@ export default function BaseSidebar({ links, headerContent, mobileTopbar }: Base
               key={link.href}
               href={link.href}
               onClick={() => setMobileOpen(false)}
-              className={`px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
+              className={`px-3 py-2.5 rounded-lg text-sm transition-all duration-150 flex items-center justify-between gap-2 ${
                 active
                   ? "bg-sidebar-active text-white font-semibold shadow-sm"
                   : "text-white/75 hover:bg-sidebar-hover hover:text-white"
               }`}
             >
-              {link.label}
+              <span>{link.label}</span>
+              {link.badge ? (
+                <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-xs font-semibold rounded-full bg-white/20 text-white">
+                  {link.badge}
+                </span>
+              ) : null}
             </Link>
           );
         })}
       </nav>
+      {footerContent && <div className="mt-auto pt-4">{footerContent}</div>}
     </>
   );
 

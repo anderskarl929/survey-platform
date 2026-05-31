@@ -98,7 +98,9 @@ Ny route `student/moment/[unitId]/att-gora/page.tsx` (Variant A): mono-header + 
 - Ny route `src/app/student/moment/[unitId]/att-gora/page.tsx`, **Variant A** (Gör härnäst / Missat - ta igen / Kommande / Klart).
 - Återanvänder status-helpern från Fas 2. Översätt `design/variants/moment-tasks.jsx`.
 
-### Fas 5 - Layout + sidebar + mobil (M, störst blast radius)
+### Fas 5 - Layout + sidebar + mobil (M, störst blast radius) - KLAR 2026-05-31 (tsc+eslint grönt, ej visuellt testad)
+Bytt elevskalet från topbar + `max-w-2xl` till sidebar-skal. `BaseSidebar` utökad additivt (admin opåverkad): `badge?` på länkar + valfri `footerContent`. Ny `src/components/StudentSidebar.tsx` (klient): länkar Hem / Mina resultat / Feedback (olästa-badge), header = kursnamn, footer = "Elev #N" + Logga ut. `student/layout.tsx` omskriven (server: hämtar olästa feedback + kursnamn), `flex md:flex-row` + `main` med `max-w-3xl` (768px - kompromiss; designens 940-1100 kan tas senare). Mobil-hamburgare via BaseSidebar. OBS avvikelse mot designens sidebar-länkar: "Momentet/Att göra/Att öva på/Kurser" utelämnade - de är momentscopade (finns på moment-sidorna) eller saknar route; sidebaren håller bara globala, fungerande rutter. SESSIONEN saknar elevnamn (bara `studentNumber`) -> fot visar "Elev #N". Mobilvy-prototypen (moment-mobile.jsx) ej separat byggd - de responsiva vyerna + BaseSidebar-hamburgaren täcker mobilen. Regressionsrisk: alla elevsidor (dashboard/resultat/quiz/feedback) renderas nu i sidebar-skal -> visuell koll på deploy.
+
 - Bygg `StudentSidebar` ovanpå `BaseSidebar` (analogt med `src/components/CourseSidebar.tsx`). Länkar: Momentet, Att göra (badge = kvar + missade), Resultat, Att öva på, Kurser.
 - Byt `src/app/student/layout.tsx` från topbar + `max-w-2xl` till sidebar-skal (bredd ~940-1100px för innehåll). Mobil-hamburgaren finns redan i `BaseSidebar`.
 - Mobilvyer (`design/variants/moment-mobile.jsx`): grön header-block + framstegsbar + kolumnlayout.
