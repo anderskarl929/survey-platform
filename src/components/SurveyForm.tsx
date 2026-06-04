@@ -253,6 +253,7 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
         </button>
         {isLastQuestion ? (
           <button
+            key="nav-submit"
             type="submit"
             disabled={submitting || answeredCount === 0}
             className="btn-primary flex-1 py-3"
@@ -261,6 +262,7 @@ export default function SurveyForm({ survey }: { survey: SurveyData }) {
           </button>
         ) : (
           <button
+            key="nav-next"
             type="button"
             onClick={goNext}
             disabled={submitting}

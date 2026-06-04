@@ -274,6 +274,7 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
         </button>
         {isLastQuestion ? (
           <button
+            key="nav-submit"
             type="submit"
             disabled={submitting || answeredCount === 0}
             className="btn-primary flex-1 py-3"
@@ -282,6 +283,7 @@ export default function StudentQuizForm({ survey, lockMode = false }: Props) {
           </button>
         ) : (
           <button
+            key="nav-next"
             type="button"
             onClick={goNext}
             disabled={submitting}
