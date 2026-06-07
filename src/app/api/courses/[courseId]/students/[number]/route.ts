@@ -52,6 +52,7 @@ export async function GET(
         questionType: a.question.type,
         value: a.value,
         isCorrect: a.isCorrect,
+        feedback: a.feedback,
       })),
     };
   });

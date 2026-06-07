@@ -8,12 +8,16 @@ interface Answer {
   questionText: string;
   questionType: string;
   value: string;
+  isCorrect: boolean | null;
+  feedback: string | null;
 }
 
 interface SurveyResponse {
   surveyId: number;
   surveyTitle: string;
+  mode: string;
   respondedAt: string;
+  score: { correct: number; total: number } | null;
   answers: Answer[];
 }
 
@@ -31,6 +35,14 @@ export default function StudentDetailPage() {
       .then((res) => res.json())
       .then(setData);
   }, [courseId, number]);
+
+  // Jump to the survey deep-linked from Elevöversikt (e.g. ...#survey-3) once
+  // the data has rendered.
+  useEffect(() => {
+    if (!data || !window.location.hash) return;
+    const el = document.getElementById(window.location.hash.slice(1));
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [data]);
 
   if (!data) {
     return <div className="text-muted">Laddar...</div>;
@@ -50,28 +62,73 @@ export default function StudentDetailPage() {
       ) : (
         <div className="space-y-5">
           {data.surveys.map((s) => (
-            <div key={s.surveyId} className="card p-6">
+            <div key={s.surveyId} id={`survey-${s.surveyId}`} className="card p-6 scroll-mt-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold tracking-tight">{s.surveyTitle}</h2>
-                <span className="text-xs text-muted">
-                  {new Date(s.respondedAt).toLocaleDateString("sv-SE")}
-                </span>
+                <div className="flex items-center gap-3">
+                  {s.score && (
+                    <span className="badge bg-accent-light text-accent-hover text-xs">
+                      {s.score.correct}/{s.score.total} rätt
+                    </span>
+                  )}
+                  <span className="text-xs text-muted">
+                    {new Date(s.respondedAt).toLocaleDateString("sv-SE")}
+                  </span>
+                </div>
               </div>
-              <div className="space-y-3">
-                {s.answers.map((a) => (
-                  <div key={a.questionId} className="border-b border-border-light last:border-0 pb-3 last:pb-0">
-                    <div className="text-sm text-muted mb-1">{a.questionText}</div>
-                    <div className="text-sm font-medium">
-                      {a.questionType === "MULTIPLE_CHOICE" ? (
-                        <span className="bg-primary-light text-primary px-2.5 py-0.5 rounded-lg text-xs font-semibold">
-                          {a.value}
-                        </span>
-                      ) : (
-                        <span className="italic text-foreground">&quot;{a.value}&quot;</span>
+              <div className="space-y-4">
+                {s.answers.map((a) => {
+                  const isFreeText = a.questionType !== "MULTIPLE_CHOICE";
+                  return (
+                    <div
+                      key={a.questionId}
+                      className="border-b border-border-light last:border-0 pb-4 last:pb-0"
+                    >
+                      <div className="text-sm text-muted mb-1.5">{a.questionText}</div>
+                      <div className="text-sm font-medium flex items-start gap-2">
+                        {isFreeText ? (
+                          <span className="italic text-foreground whitespace-pre-wrap">
+                            &quot;{a.value}&quot;
+                          </span>
+                        ) : (
+                          <>
+                            <span className="bg-primary-light text-primary px-2.5 py-0.5 rounded-lg text-xs font-semibold">
+                              {a.value}
+                            </span>
+                            {a.isCorrect === true && (
+                              <span className="text-accent text-xs font-semibold" title="Rätt">
+                                ✓ Rätt
+                              </span>
+                            )}
+                            {a.isCorrect === false && (
+                              <span className="text-error text-xs font-semibold" title="Fel">
+                                ✗ Fel
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      {isFreeText && (
+                        <div className="mt-2">
+                          {a.feedback && a.feedback.trim() !== "" ? (
+                            <div className="rounded-lg bg-accent-light border border-accent/15 p-3">
+                              <div className="text-xs font-semibold text-accent-hover mb-1">
+                                Din feedback
+                              </div>
+                              <div className="text-sm text-foreground whitespace-pre-wrap">
+                                {a.feedback}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-muted-light italic">
+                              Ingen feedback ännu
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}

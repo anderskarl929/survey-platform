@@ -172,7 +172,8 @@ export default async function CourseProgressPage({
         <span className="font-medium">rätt/totalt</span> flerval, ✓ = inlämnad
         utan flerval, <span className="text-muted-light">–</span> = ej inlämnad,{" "}
         <span className="badge bg-warning-light text-warning text-xs">✎n</span> ={" "}
-        n fritextsvar väntar på feedback.
+        n fritextsvar väntar på feedback. Klicka på en ifylld cell för att läsa
+        elevens svar och feedback.
       </p>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -301,7 +302,17 @@ export default async function CourseProgressPage({
                               : ""
                           }`}
                         >
-                          {cellContent(cell)}
+                          {cell.submitted ? (
+                            <Link
+                              href={`/admin/courses/${cId}/students/${st.number}#survey-${survey.id}`}
+                              title={`Läs ${st.username}s svar på ${survey.title}`}
+                              className="inline-block rounded-md px-1.5 py-0.5 hover:bg-surface-muted transition-colors"
+                            >
+                              {cellContent(cell)}
+                            </Link>
+                          ) : (
+                            cellContent(cell)
+                          )}
                         </td>
                       );
                     })}
