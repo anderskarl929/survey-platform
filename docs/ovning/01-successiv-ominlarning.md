@@ -39,12 +39,20 @@ Ny additiv tabell `PracticeAttempt { studentId, questionId, value, isCorrect, cr
 - **Dashboard:** sektionen "Frågor att repetera" ersatt med ett kort som pekar på övningspasset.
 - Tom pool → "Inget att öva på idag" + förklaring av när nästa frågor dyker upp.
 
+### Lärarvyn (tillagd 2026-06-11)
+
+**`/admin/courses/[id]/practice`** ("Övning" i kurssidomenyn), byggd på `loadCourseRelearningOverview()`:
+
+- **Statkort:** att öva nu (due totalt), under inlärning, klarade, aktiva övare senaste 7 dagarna.
+- **Per-elev-tabell:** due / under inlärning / klarade / övningsförsök 7 d / senast övade. Badge "ej övat" när en elev har due-frågor men inte övat på en vecka - lärarens nudge-signal.
+- **Klassens luckor:** frågorna flest elever har under inlärning, med antal redo att öva - toppen är kandidater för helklassgenomgång (missuppfattningskorrigering där den gör störst nytta).
+- Aktivitetsstatistiken räknar bara `PracticeAttempt` (elevens egen övning); poolen och statusen räknar som alltid även skarpa quiz-svar.
+
 ### Avgränsningar v1
 
 - **Bara MULTIPLE_CHOICE.** Fritext har ingen maskinell rättning; exit tickets ingår inte.
 - **Bara frågor eleven mött och missat.** Frågor med rätt på första försöket hanteras av lärarens kumulativa startquiz, inte av övningspoolen.
 - `mastery.ts` (per-quiz "Öva igen"-flödet) lämnas orörd i v1 - två parallella system tills relearning visat sig bära. Kandidat för v2: låt relearning-statusen driva även per-quiz-progressbarerna.
-- Ingen lärarvy över övningsaktivitet (v2-kandidat: kolumn i Elevöversikt).
 
 ### Transparens (pedagogisk not)
 
